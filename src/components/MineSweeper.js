@@ -1,7 +1,7 @@
 import React from 'react'
 
-import Cell from './cell'
-import Timer from './timer'
+import Cell from './Cell'
+import Timer from './Timer'
 import GameCore from '../GameCore.js'
 
 class Minesweeper extends React.Component {
