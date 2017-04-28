@@ -24,7 +24,7 @@ class Cell extends React.Component {
     return (
       <div
         className={classNames.join(' ')}
-        style={{flex: 1}}
+        style={{flex: '1 0'}}
         onMouseDown={({nativeEvent}) => {
           const {buttons} = nativeEvent
           if (buttons === 2) {
@@ -35,7 +35,6 @@ class Cell extends React.Component {
             update(GC.toDig().focus(cell.position))
           } else if (buttons === 3) {
             // both down
-            console.log('to boom')
             update(GC.toBoom().focus(cell.position))
           }
         }}
@@ -54,6 +53,7 @@ class Cell extends React.Component {
           e.stopPropagation()
         }}
         >
+        <div style={{paddingBottom: '100%'}} >
           <span
             style={{
               position: 'absolute',
@@ -66,6 +66,7 @@ class Cell extends React.Component {
             >
             {cellContent}
           </span>
+        </div>
       </div>
     )
   }

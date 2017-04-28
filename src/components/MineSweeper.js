@@ -3,68 +3,95 @@ import React from 'react'
 import Cell from './Cell'
 import Timer from './Timer'
 import GameCore from '../GameCore.js'
+import DifficultySelector from './DifficultySelector'
 
 class Minesweeper extends React.Component {
   constructor() {
     super()
     this.state = {
-      gamePad: GameCore.reset(),
-      gamePadSize: this.parseSize(GameCore.getSize())
+      GameCore,
+      gamePad: [],
     }
     this.update = this.update.bind(this)
-  }
-
-  parseSize(size) {
-    let width, height
-    if (size.width > size.height) {
-      width = '100%'
-      height = `${size.height / size.width * 100}%`
-    } else {
-      height = '100%'
-      width = `${size.width / size.height * 100}%`
-    }
-    return {width, height}
+    setInterval(() => {
+      this.setState({
+        time: GameCore.time
+      })
+    }, 1000)
   }
 
   update(gamePad) {
     this.setState({
       gamePad,
-      gamePadSize: this.parseSize(GameCore.getSize())
     })
   }
 
   render() {
     return (
-      <div style={{width: this.state.gamePadSize.width, height: this.state.gamePadSize.height, margin: '0 auto'}} >
-        <div style={{fontSize: 0, display: 'flex', flexDirection: 'column', height: '100%'}}>
-          {
-            this.state.gamePad.map((row, j) => {
-              return (
-                <div key={j} style={{display: 'flex', flex: 1}}>
-                  {
-                    row.map((cell, i) => {
-                      return (
-                        <Cell
-                          key={i}
-                          cell={cell}
-                          GC={GameCore}
-                          update={this.update}
-                          />
-                      )
-                    })
-                  }
-                </div>
-              )
-            })
-          }
-        </div>
+      <div
+        style={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center'
+        }}
+        >
+        <DifficultySelector
+          style={{
+            display: GameCore.isEnd() ? 'flex' : 'none',
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0
+          }}
+          startGame={(size, mines) => {this.update(GameCore.reset({width: size[0], height: size[1], mines}))}}
+          />
         <div
           style={{
             display: 'flex',
-            justifyContent: 'space-around'
+            justifyContent: 'space-around',
+            alignItems: 'center'
           }}
           >
+          <Timer time={this.state.time} />
           <button onClick={() => this.update(GameCore.shiftBack())}>back</button>
+        </div>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            justifyContent: 'center'
+          }}
+          >
+          <div
+            style={{
+              flex: 1,
+            }}
+            >
+            <div style={{fontSize: 0, height: '100%'}}>
+              {
+                this.state.gamePad.map((row, j) => {
+                  return (
+                    <div key={j} style={{display: 'flex'}}>
+                      {
+                        row.map((cell, i) => {
+                          return (
+                            <Cell
+                              key={i}
+                              cell={cell}
+                              GC={GameCore}
+                              update={this.update}
+                              />
+                          )
+                        })
+                      }
+                    </div>
+                  )
+                })
+              }
+            </div>
+          </div>
         </div>
       </div>
     )

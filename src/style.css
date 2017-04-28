@@ -1,5 +1,13 @@
 html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#game-view {
+  width: 100%;
+  height: 100%;
 }
 
 .sizer-wrapper {
@@ -11,6 +19,9 @@ html, body {
     width: 100vmin;
     height: 100vmin;
     margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
 

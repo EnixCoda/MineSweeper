@@ -1,13 +1,19 @@
 class GameCore {
   constructor() {
+    this.needInit = true
     this.needMine = true
     this.statuses = {
       normal: 'normal',
       toDig: 'toDig',
       toBoom: 'toBoom'
     }
-    this.gamePad = [[{}]]
+    this.time
+    this.gamePad
     this.gameStates = []
+  }
+
+  isEnd() {
+    return this.needInit
   }
 
   toNormal() {
@@ -74,9 +80,11 @@ class GameCore {
   reset({width = 12, height = 6, mines = 6} = {}) {
     this.width = width
     this.height = height
+    this.time = 0
     this.mines = mines
     this.toNormal()
     this.needMine = true
+    this.needInit = false
     this.gamePad = new Array(height)
       .fill()
       .map((_, j) => 
@@ -130,6 +138,7 @@ class GameCore {
   shiftBack() {
     if (this.gameStates.length > 1) {
       this.gameStates.pop()
+      this.needInit = false
       this.gamePad = this.gameStates[this.gameStates.length - 1]
     }
     return this.gamePad
@@ -155,18 +164,33 @@ class GameCore {
 
   // actions: dig, flag, boom
   dig([i, j], notLog = false) {
+    if (this.needInit) {
+      return this.gamePad
+    }
     if (this.needMine) {
       this.scatterMines([i, j])
       this.needMine = false
+      this.timer = setInterval(() => {
+        this.time++
+      }, 1000)
     }
     if (!this.gamePad[j][i].digged) {
       const gamePad = JSON.parse(JSON.stringify(this.gamePad))
-      let digArea = [[i, j]]
+      let digArea
       if (gamePad[j][i].level === 0){
         digArea = this.scan([i, j], gamePad)
+      } else {
+        digArea = [[i, j]]
       }
       digArea.forEach(([i, j]) => {
-        if (!gamePad[j][i].flagged) gamePad[j][i].digged = true
+        if (!gamePad[j][i].flagged) {
+          gamePad[j][i].digged = true
+          if (gamePad[j][i].isMine) {
+            clearInterval(this.timer)
+            this.needInit = true
+            alert('GAME OVER')
+          }
+        }
       })
       if (!notLog) {
         this.gameStates.push(gamePad)
@@ -189,7 +213,7 @@ class GameCore {
   }
 
   boom([i, j]) {
-    if (!this.gamePad[j][i].isMine) {
+    if (!this.needInit && !this.gamePad[j][i].isMine) {
       let countMinesAround = 0
       this.walkAround([i, j], (i, j) => {
         if (this.gamePad[j][i].flagged) countMinesAround++

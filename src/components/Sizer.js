@@ -8,6 +8,6 @@ export default class Sizer extends React.Component {
           {this.props.children}
         </div>
       </div>
-    );
+    )
   }
 }
