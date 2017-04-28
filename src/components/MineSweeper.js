@@ -8,30 +8,44 @@ class Minesweeper extends React.Component {
   constructor() {
     super()
     this.state = {
-      gamePad: GameCore.reset()
+      gamePad: GameCore.reset(),
+      gamePadSize: this.parseSize(GameCore.getSize())
     }
     this.update = this.update.bind(this)
   }
 
+  parseSize(size) {
+    let width, height
+    if (size.width > size.height) {
+      width = '100%'
+      height = `${size.height / size.width * 100}%`
+    } else {
+      height = '100%'
+      width = `${size.width / size.height * 100}%`
+    }
+    return {width, height}
+  }
+
   update(gamePad) {
     this.setState({
-      gamePad
+      gamePad,
+      gamePadSize: this.parseSize(GameCore.getSize())
     })
   }
 
   render() {
     return (
-      <div style={{width: '100%', height: '100%'}} >
+      <div style={{width: this.state.gamePadSize.width, height: this.state.gamePadSize.height, margin: '0 auto'}} >
         <div style={{fontSize: 0, display: 'flex', flexDirection: 'column', height: '100%'}}>
           {
-            this.state.gamePad.map((row, i) => {
+            this.state.gamePad.map((row, j) => {
               return (
-                <div key={i} style={{display: 'flex', flex: 1}}>
+                <div key={j} style={{display: 'flex', flex: 1}}>
                   {
-                    row.map((cell, j) => {
+                    row.map((cell, i) => {
                       return (
                         <Cell
-                          key={j}
+                          key={i}
                           cell={cell}
                           GC={GameCore}
                           update={this.update}
