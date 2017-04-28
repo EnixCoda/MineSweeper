@@ -1,10 +1,13 @@
 class GameCore {
   constructor() {
+    this.needMine = true
     this.statuses = {
       normal: 'normal',
       toDig: 'toDig',
       toBoom: 'toBoom'
     }
+    this.gamePad = [[{}]]
+    this.gameStates = []
   }
 
   toNormal() {
@@ -35,7 +38,8 @@ class GameCore {
   }
 
   focus([i, j]) {
-    const gamePad = JSON.parse(JSON.stringify(this.gameStates[this.gameStates.length - 1]))
+    if (this.needMine) return this.gamePad
+    const gamePad = JSON.parse(JSON.stringify(this.gamePad))
     if (this.status === this.statuses.toDig) {
       gamePad[i][j].focusing = true
     } else if (this.status === this.statuses.toBoom) {
@@ -67,34 +71,52 @@ class GameCore {
     }
   }
 
-  load(width = 12, height = 12, mines = 24) {
-    /**
-     * init game
-     */
+  reset({width = 12, height = 12, mines = 36} = {}) {
     this.width = width
     this.height = height
     this.mines = mines
     this.toNormal()
-    const minePositions = []
+    this.needMine = true
     this.gamePad = new Array(width)
       .fill()
       .map((_, i) => 
         new Array(height)
           .fill()
           .map((_, j) => {
-            const isMine = Math.random() < mines / (width * height)
-            if (isMine) minePositions.push([i, j])
             return {
               position: [i, j],
-              isMine,
               level: 0
             }
           })
       )
-    minePositions.forEach(([i, j]) => {
-      this.walkAround([i, j], (i, j) => this.gamePad[i][j].level++)
-    })
-    this.gameStates = [this.gamePad]
+    this.gameStates.length = 0
+    return this.gamePad
+  }
+
+  scatterMines(safePosition) {
+    const minePositions = []
+    let count = 0
+    let passedSafePosition = false
+    const TOTAL_CELL_COUNT = this.width * this.height
+    this.gamePad.forEach((row, i) => 
+      row.forEach((cell, j) => {
+        let isMine
+        // all mines scattered
+        if (safePosition[0] === i && safePosition[1] === j || minePositions.length === this.mines) isMine = false
+        // remaining positions count equals to remaining positions to scatter
+        else if (TOTAL_CELL_COUNT - count - (passedSafePosition ? 0 : 1) === this.mines - minePositions.length) isMine = true
+        // random
+        else isMine = Math.random() < this.mines / (this.width * this.height)
+        if (safePosition[0] === i && safePosition[1] === j) passedSafePosition = true
+        cell.isMine = isMine
+        if (isMine) {
+          minePositions.push([i, j])
+          this.walkAround([i, j], (i, j) => this.gamePad[i][j].level++)
+        }
+        count++
+      })
+    )
+    this.gameStates.push(this.gamePad)
     return this.gamePad
   }
 
@@ -108,7 +130,7 @@ class GameCore {
 
   scan([i, j], pad) {
     /**
-     * scan from pad[i][j], get the whole area to open
+     * scan from pad[i][j], get the whole area to open(not flagged and level 0)
      */
     if (pad[i][j].level > 0) throw new Error('not a position to scan')
     const openArea = []
@@ -122,6 +144,31 @@ class GameCore {
       }
     })
     return openArea
+  }
+
+  // actions: dig, flag, boom
+  dig([i, j], notLog = false) {
+    if (this.needMine) {
+      this.scatterMines([i, j])
+      this.needMine = false
+    }
+    if (!this.gamePad[i][j].digged) {
+      const gamePad = JSON.parse(JSON.stringify(this.gamePad))
+      let digArea = [[i, j]]
+      if (gamePad[i][j].level === 0){
+        digArea = this.scan([i, j], gamePad)
+      }
+      digArea.forEach(([i, j]) => {
+        if (!gamePad[i][j].flagged) gamePad[i][j].digged = true
+      })
+      if (!notLog) {
+        this.gameStates.push(gamePad)
+      }
+      console.log(this.gameStates.length)
+      this.gamePad = gamePad
+      this.toNormal()
+    }
+    return this.gamePad
   }
 
   flag([i, j]) {
@@ -147,26 +194,6 @@ class GameCore {
         })
       }
       this.gameStates.push(this.gamePad)
-      this.toNormal()
-    }
-    return this.gamePad
-  }
-
-  dig([i, j], notLog = false) {
-    if (!this.gamePad[i][j].digged) {
-      const gamePad = JSON.parse(JSON.stringify(this.gamePad))
-      let digArea = [[i, j]]
-      if (gamePad[i][j].level === 0){
-        digArea = this.scan([i, j], gamePad)
-      }
-      digArea.forEach(([i, j]) => {
-        if (!gamePad[i][j].flagged) gamePad[i][j].digged = true
-      })
-      if (!notLog) {
-        this.gameStates.push(gamePad)
-      }
-      console.log(this.gameStates.length)
-      this.gamePad = gamePad
       this.toNormal()
     }
     return this.gamePad

@@ -8,7 +8,7 @@ class Minesweeper extends React.Component {
   constructor() {
     super()
     this.state = {
-      gamePad: GameCore.load()
+      gamePad: GameCore.reset()
     }
     this.update = this.update.bind(this)
   }

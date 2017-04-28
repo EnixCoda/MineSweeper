@@ -31,8 +31,10 @@ class Cell extends React.Component {
             // only right down
             update(GC.flag(cell.position))
           } else if (buttons === 1) {
+            // only left down
             update(GC.toDig().focus(cell.position))
           } else if (buttons === 3) {
+            // both down
             console.log('to boom')
             update(GC.toBoom().focus(cell.position))
           }
