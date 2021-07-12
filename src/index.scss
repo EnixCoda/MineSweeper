@@ -1,0 +1,47 @@
+html,
+body {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.viewport {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+  }
+
+  .cells-view {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    .cells-container {
+      display: grid;
+    }
+
+    .cell {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+      cursor: pointer;
+
+      &:hover {
+        &:not(.state-revealed) {
+          filter: brightness(0.8);
+        }
+
+        outline: auto;
+      }
+    }
+  }
+}
