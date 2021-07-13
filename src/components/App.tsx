@@ -3,7 +3,7 @@ import { useGame } from "../hooks/useGame";
 import { useGameTimerControl } from "../hooks/useGameTimerControl";
 import { useTimer } from "../hooks/useTimer";
 import { useUpdate } from "../hooks/useUpdate";
-import { CellControl } from "./CellControl";
+import { Cells } from "./Cells";
 
 const levels = {
   easy: [9, 9, 10],
@@ -19,7 +19,6 @@ export function App() {
   useGameTimerControl(game, timer);
   const [level, setLevel] = React.useState<keyof typeof levels>("easy");
 
-  let i = 0;
   return (
     <div className="viewport">
       <div className="status-bar">
@@ -51,19 +50,7 @@ export function App() {
           </button>
         </div>
       </div>
-      <div className="cells-view">
-        <div
-          className="cells-container"
-          style={{
-            gridTemplateColumns: `repeat(${game.grid.width}, 32px)`,
-            gridTemplateRows: `repeat(${game.grid.height}, 32px)`,
-          }}
-        >
-          {game.grid.map((x, y) => (
-            <CellControl key={i++} game={game} x={x} y={y} />
-          ))}
-        </div>
-      </div>
+      <Cells game={game} />
     </div>
   );
 }
