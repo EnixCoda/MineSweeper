@@ -5,19 +5,19 @@ import { CellContent } from "./CellContent";
 
 export function Cells({ game }: { game: Game }) {
   const ref = React.useRef({ left: false, right: false });
+  const [pointer, updatePointer] = React.useState<[number, number]>([-1, -1]);
   const fireAction = React.useCallback(
     function fireAction(x: number, y: number) {
-      const { left, right } = ref.current;
-      const action =
-        left && right ? "macro" : left ? "reveal" : right ? "flag" : "";
+      const action = resolveAction(ref.current);
       if (action === "") return;
       game.onAction(x, y, action);
     },
-    [game.onAction]
+    [game, game.onAction]
   );
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent, x: number, y: number) => {
       console.debug(`onPointerUp`, e.buttons, ref.current);
+      updatePointer([x, y]);
       fireAction(x, y);
       ref.current.left = false;
       ref.current.right = false;
@@ -27,6 +27,7 @@ export function Cells({ game }: { game: Game }) {
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent, x: number, y: number) => {
       console.debug(`onPointerMove`, e.buttons, ref.current);
+      updatePointer([x, y]);
       if (e.buttons === 0) return;
       ref.current.left ||= Boolean(e.buttons & pointerEventButtons.LEFT);
       ref.current.right ||= Boolean(e.buttons & pointerEventButtons.RIGHT);
@@ -36,6 +37,7 @@ export function Cells({ game }: { game: Game }) {
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent, x: number, y: number) => {
       console.debug(`onPointerDown`, e.buttons, ref.current);
+      updatePointer([x, y]);
       if (e.buttons === 0) return;
       ref.current.left ||= Boolean(e.buttons & pointerEventButtons.LEFT);
       ref.current.right ||= Boolean(e.buttons & pointerEventButtons.RIGHT);
@@ -45,7 +47,7 @@ export function Cells({ game }: { game: Game }) {
 
   let i = 0;
   return (
-    <div className="cells-view">
+    <div className={`cells-view state-${game.state}`}>
       <div
         className="cells-container"
         style={{
@@ -58,7 +60,11 @@ export function Cells({ game }: { game: Game }) {
           return (
             <div
               key={i++}
-              className={`cell state-${cell.state}`}
+              className={`cell state-${cell.state} pointer-${resolveCellClass(
+                ref.current,
+                [x, y],
+                pointer
+              )}`}
               role="button"
               onContextMenu={(e) => e.preventDefault()}
               onPointerUp={(e) => onPointerUp(e, x, y)}
@@ -73,4 +79,39 @@ export function Cells({ game }: { game: Game }) {
       </div>
     </div>
   );
+}
+
+function resolveAction(ref: { left: boolean; right: boolean }) {
+  const { left, right } = ref;
+  const action =
+    left && right ? "macro" : left ? "reveal" : right ? "flag" : "";
+  return action;
+}
+
+function resolveCellClass(
+  ref: { left: boolean; right: boolean },
+  cellPosition: [number, number],
+  pointer: [number, number]
+) {
+  const action = resolveAction(ref);
+  switch (action) {
+    case "reveal": {
+      if (cellPosition[0] === pointer[0] && cellPosition[1] === pointer[1])
+        return "reveal";
+      break;
+    }
+    case "macro": {
+      if (
+        Math.abs(cellPosition[0] - pointer[0]) <= 1 &&
+        Math.abs(cellPosition[1] - pointer[1]) <= 1
+      )
+        return "macro";
+      break;
+    }
+  }
+
+  if (cellPosition[0] === pointer[0] && cellPosition[1] === pointer[1])
+    return "hover";
+
+  return "";
 }

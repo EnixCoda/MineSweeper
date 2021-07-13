@@ -1,38 +1,31 @@
 import * as React from "react";
+import { Level, levels } from "../constants";
 import { useGame } from "../hooks/useGame";
 import { useGameTimerControl } from "../hooks/useGameTimerControl";
+import { useStatistics } from "../hooks/useStatistics";
 import { useTimer } from "../hooks/useTimer";
 import { useUpdate } from "../hooks/useUpdate";
 import { Cells } from "./Cells";
-
-const levels = {
-  easy: [9, 9, 10],
-  medium: [16, 16, 40],
-  hard: [30, 16, 99],
-  oneChanceToLive: [10, 10, 99],
-} as const;
+import { Statistics } from "./Statistics";
 
 export function App() {
   const update = useUpdate();
   const timer = useTimer();
   const [game, startGame] = useGame(update);
   useGameTimerControl(game, timer);
-  const [level, setLevel] = React.useState<keyof typeof levels>("easy");
+
+  const [level, setLevel] = React.useState<Level>("easy");
+  const statistics = useStatistics(game, level, timer);
 
   return (
     <div className="viewport">
       <div className="status-bar">
-        <pre>
-          Time:{" "}
-          {Math.min(999, timer.value / 1000)
-            .toFixed(1)
-            .padStart(5, "0")}
-        </pre>
+        <pre>Time: {formatTime(timer.value)}</pre>
         {game.state}
         <div>
           <select
             name="level"
-            onChange={(e) => setLevel(e.target.value as keyof typeof levels)}
+            onChange={(e) => setLevel(e.target.value as Level)}
           >
             {Object.keys(levels).map((level) => (
               <option key={level} value={level}>
@@ -50,7 +43,14 @@ export function App() {
           </button>
         </div>
       </div>
+      <Statistics statistics={statistics} />
       <Cells game={game} />
     </div>
   );
+}
+
+export function formatTime(time: number) {
+  return Math.min(999, time / 1000)
+    .toFixed(1)
+    .padStart(5, "0");
 }

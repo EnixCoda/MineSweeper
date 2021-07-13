@@ -34,13 +34,28 @@ body {
       align-items: center;
       user-select: none;
       cursor: pointer;
+      font-size: 32px;
+    }
 
-      &:hover {
-        &:not(.state-revealed) {
-          filter: brightness(0.8);
+    &.state-idle,
+    &.state-playing {
+      .cell {
+        &:hover {
+          outline: 1px dashed #66666666;
         }
 
-        outline: auto;
+        &:not(.state-revealed) {
+          &:hover {
+            filter: brightness(0.8);
+          }
+
+          &.pointer-reveal {
+            filter: brightness(0.5);
+          }
+          &.pointer-macro {
+            filter: brightness(0.625);
+          }
+        }
       }
     }
   }
