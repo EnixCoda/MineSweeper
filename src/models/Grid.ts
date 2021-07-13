@@ -11,12 +11,22 @@ export class Grid<T> {
     this.size = width * height;
   }
 
+  private i(x: number, y: number) {
+    return x + this.width * y;
+  }
+
+  private xy(i: number) {
+    const x = i % this.width;
+    const y = (i - x) / this.width;
+    return [x, y] as const;
+  }
+
   get(x: number, y: number) {
-    return this.slots[x + this.width * y];
+    return this.slots[this.i(x, y)];
   }
 
   set(x: number, y: number, data: T) {
-    return this._set(x + this.width * y, data);
+    return this._set(this.i(x, y), data);
   }
 
   private _set(index: number, data: T) {
@@ -42,6 +52,7 @@ export class Grid<T> {
     const siblings: [number, number][] = [];
     for (let dx = -1; dx <= 1; ++dx) {
       for (let dy = -1; dy <= 1; ++dy) {
+        if (!dx && !dy) continue;
         const $x = x + dx;
         const $y = y + dy;
         if ($x >= 0 && $x < this.width && $y >= 0 && $y < this.height)
@@ -59,14 +70,18 @@ export class Grid<T> {
     return true;
   }
 
+  randomSwap(x: number, y: number) {
+    const i = this.i(x, y);
+    let j = Math.floor(Math.random() * this.size);
+    if (i === j) j = (j + 1) % this.size;
+    const tmp = this.slots[i];
+    this.slots[i] = this.slots[j];
+    this.slots[j] = tmp;
+  }
+
   scan(callback: (x: number, y: number) => void) {
-    let j = 0;
-    while (j < this.size) {
-      const x = j % this.width;
-      const y = (j - x) / this.width;
-      callback(x, y);
-      j++;
-    }
+    let i = 0;
+    while (i < this.size) callback(...this.xy(i++));
   }
 
   map<X>(callback: (x: number, y: number) => X): X[] {

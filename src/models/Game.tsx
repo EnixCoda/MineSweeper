@@ -4,6 +4,15 @@ import { Grid } from "./Grid";
 type Actions = BasicActions | "macro";
 type BasicActions = "reveal" | "flag";
 
+type TransformMap<Data, State extends string, Action extends string> = Partial<
+  Record<
+    State,
+    Partial<
+      Record<Action, (State | ((x: number, y: number, data: Data) => void))[]>
+    >
+  >
+>;
+
 export class Game {
   readonly mineCount: number;
   readonly grid: Grid<Cell>;
@@ -17,21 +26,26 @@ export class Game {
     onGameUpdate: Game["onGameUpdate"]
   ) {
     this.grid = new Grid(width, height);
-    this.mineCount = mineCount;
+    this.mineCount = Math.min(width * height - 1, mineCount);
     this.onGameUpdate = onGameUpdate;
     this.unrevealedCount = width * height;
 
     let i = 0;
-    while (i++ < mineCount) this.grid.randomInsert(new Cell(true));
+    while (i++ < this.mineCount) this.grid.randomInsert(new Cell(true));
     while (this.grid.randomInsert(new Cell(false)));
-    this.grid.scan((x, y) => {
-      const cell = this.grid.get(x, y);
-      if (cell.isMine === false) {
-        cell.siblingsCount = this.grid
-          .getSiblings(x, y)
-          .filter(([x, y]) => this.grid.get(x, y).isMine).length;
-      }
-    });
+  }
+
+  private setSiblingsCount(x: number, y: number) {
+    const cell = this.grid.get(x, y);
+    if (cell.isMine === false) {
+      cell.siblingsCount = this.grid
+        .getSiblings(x, y)
+        .filter(([x, y]) => this.grid.get(x, y).isMine).length;
+    }
+  }
+
+  onSafeReveal(x: number, y: number) {
+    while (this.grid.get(x, y).isMine) this.grid.randomSwap(x, y);
   }
 
   onAction(x: number, y: number, action: Actions) {
@@ -54,29 +68,20 @@ export class Game {
     this.onGameUpdate();
   }
 
-  cellTransformMap: Partial<
-    Record<
-      Cell["state"],
-      Partial<
-        Record<
-          BasicActions,
-          (Cell["state"] | ((x: number, y: number, cell: Cell) => void))[]
-        >
-      >
-    >
-  > = {
+  cellTransformMap: TransformMap<Cell, Cell["state"], BasicActions> = {
     initial: {
       reveal: [
         "revealed",
         (x, y, cell) => {
+          if (this.state === "idle") this.state = "playing";
           if (--this.unrevealedCount === this.mineCount) this.state = "win";
-
-          if (cell.isMine) {
-            this.state = "lose";
-          } else if (cell.siblingsCount === 0) {
-            this.grid
-              .getSiblings(x, y)
-              .forEach(([$x, $y]) => this.onBaseAction($x, $y, "reveal"));
+          if (cell.isMine) this.state = "lose";
+          else {
+            this.setSiblingsCount(x, y);
+            if (cell.siblingsCount === 0)
+              this.grid
+                .getSiblings(x, y)
+                .forEach(([$x, $y]) => this.onBaseAction($x, $y, "reveal"));
           }
         },
       ],
@@ -88,14 +93,15 @@ export class Game {
   };
 
   private onBaseAction(x: number, y: number, action: BasicActions) {
-    if (this.state === "idle") this.state = "playing";
+    if (this.state === "idle" && action === "reveal") this.onSafeReveal(x, y);
+
     if (this.state === "win" || this.state === "lose") return;
 
     const cell = this.grid.get(x, y);
     const next = this.cellTransformMap[cell.state]?.[action];
-    next?.forEach((processor) => {
-      if (typeof processor === "string") cell.state = processor;
-      else processor(x, y, cell);
+    next?.forEach((transform) => {
+      if (typeof transform === "string") cell.state = transform;
+      else transform(x, y, cell);
     });
   }
 }
