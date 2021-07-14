@@ -20,12 +20,13 @@ body {
   .cells-view {
     flex: 1;
     overflow: auto;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+    display: grid;
 
     .cells-container {
       display: grid;
+      justify-self: center;
+      border: 2px solid #666;
+      border-radius: 8px;
     }
 
     .cell {
