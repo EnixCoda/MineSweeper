@@ -34,7 +34,6 @@ body {
       align-items: center;
       user-select: none;
       cursor: pointer;
-      font-size: 32px;
     }
 
     &.state-idle,
@@ -57,6 +56,12 @@ body {
           }
         }
       }
+    }
+
+    .cell-content {
+      // Enlarge and down scale to align emoji to center in Chromium based browsers
+      font-size: 32px;
+      transform: scale(0.5);
     }
   }
 }

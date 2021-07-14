@@ -19,7 +19,7 @@ export function CellFlagged(): React.ReactNode {
 
 export function CellContent({ cell }: { cell: Cell }) {
   return (
-    <>
+    <span className="cell-content">
       {cell.state === "flagged"
         ? CellFlagged()
         : cell.state === "initial"
@@ -29,6 +29,6 @@ export function CellContent({ cell }: { cell: Cell }) {
           ? CellMine()
           : CellSiblingsCount(cell) || null
         : ""}
-    </>
+    </span>
   );
 }
