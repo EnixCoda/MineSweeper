@@ -3,11 +3,14 @@ import { Level, levels } from "../constants";
 import { Game } from "../models/Game";
 import { useStorage } from "./useStorage";
 
-export type Statistics = Record<Level, {
-  total: number;
-  wins: number;
-  records: number[];
-}>;
+export type Statistics = Record<
+  Level,
+  {
+    total: number;
+    wins: number;
+    records: number[];
+  }
+>;
 
 export function useStatistics(
   game: Game,
@@ -39,12 +42,12 @@ export function useStatistics(
         statistics[level].wins++;
         statistics[level].total++;
         statistics[level].records.push(timer.value);
-        statistics[level].records.sort((a, b) => a - b).slice(0, 3);
+        statistics[level].records.sort((a, b) => a - b).splice(3, Infinity);
         break;
       }
     }
     updateStatistics(statistics);
   }, [game.state]);
 
-  return statistics
+  return statistics;
 }
