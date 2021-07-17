@@ -18,7 +18,7 @@ export class Game {
   readonly grid: Grid<Cell>;
   public state: "idle" | "playing" | "win" | "lose" = "idle";
   private onGameUpdate: () => void;
-  private unrevealedCount;
+  private unrevealedCount: number;
   constructor(
     width: Game["grid"]["width"],
     height: Game["grid"]["height"],
@@ -33,6 +33,14 @@ export class Game {
     let i = 0;
     while (i++ < this.mineCount) this.grid.randomInsert(new Cell(true));
     while (this.grid.randomInsert(new Cell(false)));
+  }
+
+  get flagCount(): number {
+    let count = 0;
+    this.grid.scan((x, y) => {
+      if (this.grid.get(x, y).state === "flagged") ++count;
+    });
+    return count;
   }
 
   private setSiblingsCount(x: number, y: number) {

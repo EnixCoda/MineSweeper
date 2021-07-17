@@ -4,7 +4,11 @@ import { Game } from "../models/Game";
 import { formatTime } from "../utils";
 
 export function StatusBar({
-  time, game, level, setLevel, startGame,
+  time,
+  game,
+  level,
+  setLevel,
+  startGame,
 }: {
   time: number;
   game: Game;
@@ -13,12 +17,11 @@ export function StatusBar({
   startGame: (width: number, height: number, mines: number) => void;
 }) {
   return (
-    <div className="status-bar">
-      <pre>Time: {formatTime(time)}</pre>
-      {game.state}
-      <div>
+    <div>
+      <div className="start-game">
         <select
           name="level"
+          className="level-select"
           onChange={(e) => setLevel(e.target.value as Level)}
         >
           {Object.keys(levels).map((level) => (
@@ -36,6 +39,23 @@ export function StatusBar({
           New Game
         </button>
       </div>
+      <div className="status-bar">
+        <pre>Time: {formatTime(time)}</pre>
+        <span>{game.mineCount - game.flagCount} 💣</span>
+        <GameState state={game.state} />
+      </div>
     </div>
   );
+}
+function GameState({ state }: { state: Game["state"] }) {
+  switch (state) {
+    case "idle":
+      return <span>⏸</span>;
+    case "playing":
+      return <span>▶️</span>;
+    case "win":
+      return <span>🏆</span>;
+    case "lose":
+      return <span>❌</span>;
+  }
 }

@@ -15,6 +15,10 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 4px 8px;
+
+    .level-select {
+      width: 80px;
+    }
   }
 
   .statistics {

@@ -22,6 +22,7 @@ export function App() {
   return (
     <VH>
       <div className="viewport" style={{ height: fullHeight }}>
+        <Statistics statistics={statistics} />
         <StatusBar
           time={timer.value}
           game={game}
@@ -29,7 +30,6 @@ export function App() {
           level={level}
           startGame={startGame}
         />
-        <Statistics statistics={statistics} />
         <Cells game={game} />
       </div>
     </VH>
