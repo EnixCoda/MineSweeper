@@ -41,21 +41,26 @@ export function StatusBar({
       </div>
       <div className="status-bar">
         <pre>Time: {formatTime(time)}</pre>
-        <span>{game.mineCount - game.flagCount} 💣</span>
         <GameState state={game.state} />
+        <span>{game.mineCount - game.flagCount} 💣</span>
       </div>
     </div>
   );
 }
+
 function GameState({ state }: { state: Game["state"] }) {
+  return <span className="emoji-center">{renderState(state)}</span>;
+}
+
+function renderState(state: string) {
   switch (state) {
     case "idle":
-      return <span>⏸</span>;
+      return "⏸";
     case "playing":
-      return <span>▶️</span>;
+      return "▶️";
     case "win":
-      return <span>🏆</span>;
+      return "🏆";
     case "lose":
-      return <span>❌</span>;
+      return "❌";
   }
 }

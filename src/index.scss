@@ -11,9 +11,10 @@ body {
   flex-direction: column;
 
   .status-bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
     align-items: center;
-    justify-content: space-between;
     padding: 4px 8px;
 
     .level-select {
@@ -67,11 +68,11 @@ body {
         }
       }
     }
+  }
 
-    .cell-content {
-      // Enlarge and down scale to align emoji to center in Chromium based browsers
-      font-size: 48px;
-      transform: scale(0.5);
-    }
+  .emoji-center {
+    // Enlarge and down scale to align emoji to center in Chromium based browsers
+    font-size: 48px;
+    transform: scale(0.5);
   }
 }
