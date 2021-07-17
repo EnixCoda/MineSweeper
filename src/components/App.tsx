@@ -8,6 +8,7 @@ import { useUpdate } from "../hooks/useUpdate";
 import { Cells } from "./Cells";
 import { Statistics } from "./Statistics";
 import { StatusBar } from "./StatusBar";
+import { fullHeight, VH } from "./VH";
 
 export function App() {
   const update = useUpdate();
@@ -19,16 +20,18 @@ export function App() {
   const statistics = useStatistics(game, level, timer);
 
   return (
-    <div className="viewport">
-      <StatusBar
-        time={timer.value}
-        game={game}
-        setLevel={setLevel}
-        level={level}
-        startGame={startGame}
-      />
-      <Statistics statistics={statistics} />
-      <Cells game={game} />
-    </div>
+    <VH>
+      <div className="viewport" style={{ height: fullHeight }}>
+        <StatusBar
+          time={timer.value}
+          game={game}
+          setLevel={setLevel}
+          level={level}
+          startGame={startGame}
+        />
+        <Statistics statistics={statistics} />
+        <Cells game={game} />
+      </div>
+    </VH>
   );
 }
