@@ -28,7 +28,11 @@ export function Cells({ game }: { game: Game }) {
     (e: React.PointerEvent, x: number, y: number) => {
       console.debug(`onPointerMove`, e.buttons, ref.current);
       updatePointer([x, y]);
-      if (e.buttons === 0) return;
+      if (e.buttons === 0) {
+        ref.current.left = false;
+        ref.current.right = false;
+        return;
+      }
       ref.current.left ||= Boolean(e.buttons & pointerEventButtons.LEFT);
       ref.current.right ||= Boolean(e.buttons & pointerEventButtons.RIGHT);
     },
