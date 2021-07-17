@@ -5,32 +5,34 @@ import { formatTime } from "../utils";
 
 export function Statistics({ statistics }: { statistics: Statistics }) {
   return (
-    <details>
-      <summary>Statistics</summary>
-      <table>
-        <thead>
-          <tr>
-            <th>Level</th>
-            <th>Total</th>
-            <th>Wins</th>
-            <th>Records 1st</th>
-            <th>Records 2nd</th>
-            <th>Records 3rd</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(["easy", "medium", "hard"] as Level[]).map((level) => (
+    <div className="statistics">
+      <details>
+        <summary>Statistics</summary>
+        <table>
+          <thead>
             <tr>
-              <td>{level}</td>
-              <td>{statistics[level].total}</td>
-              <td>{statistics[level].wins}</td>
-              {statistics[level].records.map((record, i) => (
-                <td key={i}>{record && formatTime(record)}</td>
-              ))}
+              <th>Level</th>
+              <th>Total</th>
+              <th>Wins</th>
+              <th>Records 1st</th>
+              <th>Records 2nd</th>
+              <th>Records 3rd</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </details>
+          </thead>
+          <tbody>
+            {(["easy", "medium", "hard"] as Level[]).map((level) => (
+              <tr>
+                <td>{level}</td>
+                <td>{statistics[level].total}</td>
+                <td>{statistics[level].wins}</td>
+                {statistics[level].records.map((record, i) => (
+                  <td key={i}>{record && formatTime(record)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
+    </div>
   );
 }
