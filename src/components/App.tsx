@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Level, levels } from "../constants";
+import { Level } from "../constants";
 import { useGame } from "../hooks/useGame";
 import { useGameTimerControl } from "../hooks/useGameTimerControl";
 import { useStatistics } from "../hooks/useStatistics";
@@ -7,6 +7,7 @@ import { useTimer } from "../hooks/useTimer";
 import { useUpdate } from "../hooks/useUpdate";
 import { Cells } from "./Cells";
 import { Statistics } from "./Statistics";
+import { StatusBar } from "./StatusBar";
 
 export function App() {
   const update = useUpdate();
@@ -19,30 +20,13 @@ export function App() {
 
   return (
     <div className="viewport">
-      <div className="status-bar">
-        <pre>Time: {formatTime(timer.value)}</pre>
-        {game.state}
-        <div>
-          <select
-            name="level"
-            onChange={(e) => setLevel(e.target.value as Level)}
-          >
-            {Object.keys(levels).map((level) => (
-              <option key={level} value={level}>
-                {level}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => {
-              const [width, height, mines] = levels[level];
-              return startGame(width, height, mines);
-            }}
-          >
-            New Game
-          </button>
-        </div>
-      </div>
+      <StatusBar
+        time={timer.value}
+        game={game}
+        setLevel={setLevel}
+        level={level}
+        startGame={startGame}
+      />
       <Statistics statistics={statistics} />
       <Cells game={game} />
     </div>
