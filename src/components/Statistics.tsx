@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Level } from "../constants";
 import { Statistics } from "../hooks/useStatistics";
-import { formatTime } from "./App";
+import { formatTime } from "../utils";
 
 export function Statistics({ statistics }: { statistics: Statistics }) {
   return (
