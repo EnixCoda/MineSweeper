@@ -21,7 +21,7 @@ export function Statistics({ statistics }: { statistics: Statistics }) {
           </thead>
           <tbody>
             {(["easy", "medium", "hard"] as Level[]).map((level) => (
-              <tr>
+              <tr key={level}>
                 <td>{level}</td>
                 <td>{statistics[level].total}</td>
                 <td>{statistics[level].wins}</td>
