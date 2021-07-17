@@ -37,8 +37,8 @@ export class Game {
 
   get flagCount(): number {
     let count = 0;
-    this.grid.scan((x, y) => {
-      if (this.grid.get(x, y).state === "flagged") ++count;
+    this.grid.scan((x, y, cell) => {
+      if (cell.state === "flagged") ++count;
     });
     return count;
   }

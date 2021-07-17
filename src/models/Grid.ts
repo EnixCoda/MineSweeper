@@ -79,14 +79,17 @@ export class Grid<T> {
     this.slots[j] = tmp;
   }
 
-  scan(callback: (x: number, y: number) => void) {
+  scan(callback: (x: number, y: number, slot: T) => void) {
     let i = 0;
-    while (i < this.size) callback(...this.xy(i++));
+    while (i < this.size) {
+      const [x, y] = this.xy(i++);
+      callback(x, y, this.get(x, y));
+    }
   }
 
-  map<X>(callback: (x: number, y: number) => X): X[] {
+  map<X>(callback: (x: number, y: number, slot: T) => X): X[] {
     const r: X[] = [];
-    this.scan((x, y) => r.push(callback(x, y)));
+    this.scan((x, y, cell) => r.push(callback(x, y, cell)));
     return r;
   }
 }
