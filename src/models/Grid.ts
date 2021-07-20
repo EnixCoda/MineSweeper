@@ -56,13 +56,15 @@ export class Grid<T> implements Immutable<Grid<T>> {
   getSiblings([x, y]: Position, range = 1) {
     const siblings: [Position, T][] = [];
     for (let dx = -range; dx <= range; ++dx) {
+      const $x = x + dx;
+      if ($x < 0 || $x >= this.width) continue;
       for (let dy = -range; dy <= range; ++dy) {
-        if (dx === 0 && dy === 0) continue;
-        const $x = x + dx;
         const $y = y + dy;
-        const $position: Position = [$x, $y];
-        if ($x >= 0 && $x < this.width && $y >= 0 && $y < this.height)
-          siblings.push([$position, this.get($position)]);
+        if ($y < 0 || $y >= this.height) continue;
+
+        if (dx === 0 && dy === 0) continue;
+        const position: Position = [$x, $y];
+        siblings.push([position, this.get(position)]);
       }
     }
     return siblings;

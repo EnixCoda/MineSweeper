@@ -6,6 +6,7 @@ import { useHistory } from "../hooks/useHistory";
 import { useStatistics } from "../hooks/useStatistics";
 import { useTimer } from "../hooks/useTimer";
 import { useUpdate } from "../hooks/useUpdate";
+import { Change } from "../models/solver";
 import { Cells } from "./Cells";
 import { Solutions } from "./Solutions";
 import { Statistics } from "./Statistics";
@@ -26,6 +27,27 @@ export function App() {
 
   const solutions = useSolutions(game);
 
+  const applySolutions = React.useCallback(
+    (solutions: Change[]) =>
+      solutions.forEach(([[x, y], action]) => game.onAction(x, y, action)),
+    [game]
+  );
+
+  const [autoPlay, setAutoPlay] = React.useState(false);
+  React.useEffect(() => {
+    if (autoPlay && solutions.length) {
+      let ran = false;
+      const timeout = setTimeout(() => {
+        ran = true
+        applySolutions(solutions);
+      }, 500);
+
+      return () => {
+        if (!ran) clearTimeout(timeout);
+      };
+    }
+  }, [applySolutions, autoPlay, solutions]);
+
   return (
     <VH>
       <div className="viewport" style={{ height: fullHeight }}>
@@ -38,6 +60,15 @@ export function App() {
           startGame={startGame}
         />
         <div>
+          <label>
+            <input
+              type="checkbox"
+              name="auto-play"
+              checked={autoPlay}
+              onChange={(e) => setAutoPlay(e.target.checked)}
+            />
+            Auto play
+          </label>
           <button
             disabled={game.state !== "playing" || history.length < 2}
             onClick={() => {
@@ -50,14 +81,7 @@ export function App() {
           </button>
         </div>
         <Cells game={game} solutions={solutions} />
-        <Solutions
-          solutions={solutions}
-          apply={(solutions) => {
-            solutions.forEach(([[x, y], action]) =>
-              game.onAction(x, y, action)
-            );
-          }}
-        />
+        <Solutions solutions={solutions} apply={applySolutions} />
       </div>
     </VH>
   );
