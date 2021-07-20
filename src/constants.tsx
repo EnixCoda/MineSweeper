@@ -4,11 +4,14 @@ export const pointerEventButtons = {
   MIDDLE: 0b100,
 };
 
-export const levels = {
-  easy: [9, 9, 10],
-  medium: [16, 16, 40],
-  hard: [30, 16, 99],
-  oneChanceToLive: [10, 10, 99],
-} as const;
+export const levels = new Map([
+  ["easy", { width: 9, height: 9, mines: 10 }],
+  ["medium", { width: 16, height: 16, mines: 40 }],
+  ["hard", { width: 30, height: 16, mines: 99 }],
+  ["oneChanceToLive", { width: 10, height: 10, mines: 99 }],
+] as const);
 
-export type Level = keyof typeof levels;
+type MapKeys<M> = M extends Map<infer K, infer V> ? K : never;
+type MapValues<M> = M extends Map<infer K, infer V> ? V : never;
+
+export type Level = MapKeys<typeof levels>;

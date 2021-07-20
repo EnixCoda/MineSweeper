@@ -2,6 +2,7 @@ html,
 body {
   margin: 0;
   box-sizing: border-box;
+  font-family: system-ui;
 }
 
 .viewport {
@@ -13,6 +14,7 @@ body {
   .status-bar {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 48px;
     justify-items: center;
     align-items: center;
     padding: 4px 8px;
@@ -45,6 +47,13 @@ body {
       align-items: center;
       user-select: none;
       cursor: pointer;
+
+      &.solution-reveal {
+        background: slategray;
+      }
+      &.solution-flag {
+        background: brown;
+      }
     }
 
     &.state-idle,
@@ -62,7 +71,7 @@ body {
           &.pointer-reveal {
             filter: brightness(0.5);
           }
-          &.pointer-macro {
+          &.pointer-dig-siblings {
             filter: brightness(0.625);
           }
         }
@@ -70,9 +79,21 @@ body {
     }
   }
 
+  .solutions {
+    .table-wrapper {
+      max-height: 180px;
+      overflow: auto;
+    }
+  }
+
   .emoji-center {
     // Enlarge and down scale to align emoji to center in Chromium based browsers
     font-size: 48px;
     transform: scale(0.5);
+  }
+
+  .flex-row {
+    display: inline-flex;
+    align-items: center;
   }
 }

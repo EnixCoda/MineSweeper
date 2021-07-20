@@ -14,7 +14,7 @@ export function StatusBar({
   game: Game;
   level: Level;
   setLevel: (level: Level) => void;
-  startGame: (width: number, height: number, mines: number) => void;
+  startGame: (level: { width: number; height: number; mines: number }) => void;
 }) {
   return (
     <div>
@@ -24,23 +24,19 @@ export function StatusBar({
           className="level-select"
           onChange={(e) => setLevel(e.target.value as Level)}
         >
-          {Object.keys(levels).map((level) => (
+          {Array.from(levels.keys()).map((level) => (
             <option key={level} value={level}>
               {level}
             </option>
           ))}
         </select>
-        <button
-          onClick={() => {
-            const [width, height, mines] = levels[level];
-            return startGame(width, height, mines);
-          }}
-        >
-          New Game
-        </button>
+        <button onClick={() => startGame(levels.get(level)!)}>New Game</button>
       </div>
       <div className="status-bar">
-        <pre>Time: {formatTime(time)}</pre>
+        <div className="flex-row">
+          <span className="emoji-center">⏱</span>
+          <pre>{formatTime(time)}</pre>
+        </div>
         <GameState state={game.state} />
         <span>{game.mineCount - game.flagCount} 💣</span>
       </div>

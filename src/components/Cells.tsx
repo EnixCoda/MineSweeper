@@ -1,9 +1,16 @@
 import * as React from "react";
 import { pointerEventButtons } from "../constants";
 import { Game } from "../models/Game";
+import { matchPositions, Solution } from "../models/solver";
 import { CellContent } from "./CellContent";
 
-export function Cells({ game }: { game: Game }) {
+export function Cells({
+  game,
+  solutions,
+}: {
+  game: Game;
+  solutions: Solution[];
+}) {
   const ref = React.useRef({ left: false, right: false });
   const [pointer, updatePointer] = React.useState<[number, number]>([-1, -1]);
   const fireAction = React.useCallback(
@@ -59,8 +66,11 @@ export function Cells({ game }: { game: Game }) {
           gridTemplateRows: `repeat(${game.grid.height}, 32px)`,
         }}
       >
-        {game.grid.map((x, y) => {
-          const cell = game.grid.get(x, y);
+        {game.grid.map(([x, y]) => {
+          const cell = game.grid.get([x, y]);
+          const solution = solutions.find(([[$x, $y]]) =>
+            matchPositions([x, y], [$x, $y])
+          );
           return (
             <div
               key={i++}
@@ -68,7 +78,7 @@ export function Cells({ game }: { game: Game }) {
                 ref.current,
                 [x, y],
                 pointer
-              )}`}
+              )} solution-${solution?.[1] || ""}`}
               role="button"
               onContextMenu={(e) => e.preventDefault()}
               onPointerUp={(e) => onPointerUp(e, x, y)}
@@ -88,7 +98,7 @@ export function Cells({ game }: { game: Game }) {
 function resolveAction(ref: { left: boolean; right: boolean }) {
   const { left, right } = ref;
   const action =
-    left && right ? "macro" : left ? "reveal" : right ? "flag" : "";
+    left && right ? "dig-siblings" : left ? "reveal" : right ? "flag" : "";
   return action;
 }
 
@@ -104,12 +114,12 @@ function resolveCellClass(
         return "reveal";
       break;
     }
-    case "macro": {
+    case "dig-siblings": {
       if (
         Math.abs(cellPosition[0] - pointer[0]) <= 1 &&
         Math.abs(cellPosition[1] - pointer[1]) <= 1
       )
-        return "macro";
+        return "dig-siblings";
       break;
     }
   }

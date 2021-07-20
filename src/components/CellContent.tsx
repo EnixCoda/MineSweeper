@@ -19,7 +19,7 @@ export function CellFlagged() {
 
 export function CellContent({ cell }: { cell: Cell }) {
   return (
-    <span className="emoji-center">
+    <span className={`cell-content emoji-center`}>
       {cell.state === "flagged" ? (
         <CellFlagged />
       ) : cell.state === "initial" ? (
