@@ -14,6 +14,8 @@ import { StatusBar } from "./StatusBar";
 import { useSolutions } from "./useSolutions";
 import { fullHeight, VH } from "./VH";
 
+const enableTimeTravel = false
+
 export function App() {
   const update = useUpdate();
   const timer = useTimer();
@@ -38,7 +40,7 @@ export function App() {
     if (autoPlay && solutions.length) {
       let ran = false;
       const timeout = setTimeout(() => {
-        ran = true
+        ran = true;
         applySolutions(solutions);
       }, 500);
 
@@ -69,16 +71,18 @@ export function App() {
             />
             Auto play
           </label>
-          <button
-            disabled={game.state !== "playing" || history.length < 2}
-            onClick={() => {
-              goBack();
-              const prevState = history[history.length - 2];
-              if (prevState) game.setGrid(prevState);
-            }}
-          >
-            Cancel
-          </button>
+          {enableTimeTravel && (
+            <button
+              disabled={game.state !== "playing" || history.length < 2}
+              onClick={() => {
+                goBack();
+                const prevState = history[history.length - 2];
+                if (prevState) game.setGrid(prevState);
+              }}
+            >
+              Cancel
+            </button>
+          )}
         </div>
         <Cells game={game} solutions={solutions} />
         <Solutions solutions={solutions} apply={applySolutions} />
