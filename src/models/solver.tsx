@@ -2,6 +2,12 @@ import { Cell } from "./Cell";
 import { BasicActions, Game } from "./Game";
 import { Position } from "./Grid";
 
+export function matchPositions(a: Position, b: Position) {
+  const [aX, aY] = a;
+  const [bX, bY] = b;
+  return aX === bX && aY === bY;
+}
+
 type State = Game["grid"];
 type Action = BasicActions;
 export type Change = [Position, Action];
@@ -15,12 +21,6 @@ export function solve(
   return quickSolve(state, compare(state, previousState), previousSolutions);
 }
 
-export function matchPositions(a: Position, b: Position) {
-  const [aX, aY] = a;
-  const [bX, bY] = b;
-  return aX === bX && aY === bY;
-}
-
 function quickSolve(
   state: State,
   changes: Change[],
@@ -30,10 +30,8 @@ function quickSolve(
   const solutions: Change[] = [];
   // find solutions that have not been taken
   previousSolutions.forEach((solution) => {
-    const change = changes.find((change) =>
-      matchPositions(solution[0], change[0])
-    );
-    if (!change) solutions.push(solution);
+    if (!changes.find((change) => matchPositions(solution[0], change[0])))
+      solutions.push(solution);
   });
 
   const wentPositions: Position[] = [];
@@ -76,14 +74,14 @@ function compare(state: State, previousState: State | null) {
     }
   });
   return changes;
+}
 
-  function getChangeAction(state: Cell["state"]) {
-    switch (state) {
-      case "flagged":
-        return "flag";
-      case "revealed":
-        return "reveal";
-    }
+function getChangeAction(state: Cell["state"]) {
+  switch (state) {
+    case "flagged":
+      return "flag";
+    case "revealed":
+      return "reveal";
   }
 }
 
@@ -93,12 +91,14 @@ function getCellAction(
   y: number,
   cell: Cell
 ): Action | null {
-  if (shouldDigCell(state, x, y, cell)) return "reveal";
-  if (shouldFlagCell(state, x, y, cell)) return "flag";
+  if (cell.state === "initial") {
+    if (shouldDigCell(state, x, y, cell)) return "reveal";
+    if (shouldFlagCell(state, x, y, cell)) return "flag";
+  }
   return null;
 }
 
-function getPotentialMinesAmount(state: State, position: Position, cell: Cell) {
+function getUnrevealedAmount(state: State, position: Position, cell: Cell) {
   return (
     cell.state === "revealed" &&
     state
@@ -122,13 +122,15 @@ function shouldFlagCell(
       .getSurroundings([x, y])
       .some(
         ([position, $cell]) =>
-          getPotentialMinesAmount(state, position, $cell) ===
+          getUnrevealedAmount(state, position, $cell) ===
           $cell.surroundingsCount
       )
   ) {
     return true;
   }
   // 2. If it is not mine, the remaining cells would fail other surrounding cells
+  if (scanChained(state, [x, y], isFlagOverflow)) return true;
+
   // 3. ...
   return false;
 }
@@ -165,7 +167,123 @@ function shouldDigCell(
     return true;
   }
   // 2. If is mine, the remaining cells would fail other surrounding cells
+  if (scanChained(state, [x, y], isMineInShort)) return true;
 
   // 3. ...
   return false;
+}
+
+// B{remain} >= maxCommonMines + privateB{initial}
+function isFlagOverflow(
+  [A, aFlags, aInitials]: number[],
+  [B, bFlags, bInitials]: number[],
+  [abCommonFlags, abCommonInitials]: number[]
+) {
+  // console.log(
+  //   `isFlagOverflow`,
+  //   [A, aFlags, aInitials],
+  //   [B, bFlags, bInitials],
+  //   [abCommonFlags, abCommonInitials],
+  //   B - bFlags >=
+  //     Math.min(A - aFlags, B - bFlags, abCommonInitials) +
+  //       (bInitials - abCommonInitials)
+  // );
+  return (
+    B - bFlags >=
+    Math.min(A - aFlags, B - bFlags, abCommonInitials) +
+      (bInitials - abCommonInitials)
+  );
+}
+
+// req(AB) >= AB{initial}
+// req(AB) = (
+//    > A - aFlags - privateA{initial}
+//    > B - bFlags - privateB{initial}
+// )
+// AB{initial} = B - bFlags
+function isMineInShort(
+  [A, aFlags, aInitials]: number[],
+  [B, bFlags, bInitials]: number[],
+  [abCommonFlags, abCommonInitials]: number[]
+) {
+  // console.log(
+  //   `isMineInShort`,
+  //   [A, aFlags, aInitials],
+  //   [B, bFlags, bInitials],
+  //   [abCommonFlags, abCommonInitials],
+  //   Math.max(
+  //     A - aFlags - (aInitials - abCommonInitials),
+  //     B - bFlags - (bInitials - abCommonInitials)
+  //   ) >=
+  //     B - bFlags
+  // );
+  return (
+    Math.max(
+      A - aFlags - (aInitials - abCommonInitials),
+      B - bFlags - (bInitials - abCommonInitials)
+    ) >=
+    B - bFlags
+  );
+}
+
+function scanChained(
+  state: State,
+  [x, y]: Position,
+  callback: (
+    [A, aFlags, aInitials]: number[],
+    [B, bFlags, bInitials]: number[],
+    [abCommonFlags, abCommonInitials]: number[]
+  ) => boolean
+): boolean {
+  return state
+    .getSurroundings([x, y])
+    .filter(([bPosition, bCell]) => bCell.state === "revealed")
+    .some(([bPosition, bCell]) => {
+      const B = bCell.surroundingsCount;
+      const surroundingsOfB = state.getSurroundings(bPosition);
+      return surroundingsOfB
+        .filter(([aPosition, aCell]) => aCell.state === "revealed")
+        .filter(
+          ([aPosition, aCell]) => !matchPositions(aPosition, [x, y]) // ignore current cell
+        )
+        .some(([aPosition, aCell]) => {
+          const A = aCell.surroundingsCount;
+
+          const surroundingsOfA = state.getSurroundings(aPosition);
+          // ignore cells that cover A
+          if (
+            surroundingsOfA.some(([aaPosition]) =>
+              matchPositions(aaPosition, [x, y])
+            )
+          )
+            return false;
+
+          const filterState = (state: Cell["state"], x: [Position, Cell][]) =>
+            x.filter(([position, cell]) => cell.state === state);
+
+          const aFlags = filterState("flagged", surroundingsOfA).length;
+          const bFlags = filterState("flagged", surroundingsOfB).length;
+          const aInitials = filterState("initial", surroundingsOfA).length;
+          const bInitials = filterState("initial", surroundingsOfB).length;
+
+          const commonOfAB = surroundingsOfA.filter(([aaPosition, aaCell]) =>
+            surroundingsOfB.some(([bPosition]) =>
+              matchPositions(bPosition, aaPosition)
+            )
+          );
+          const abCommonFlags = filterState("flagged", commonOfAB).length;
+          const abCommonInitials = filterState("initial", commonOfAB).length;
+
+          // console.log(`Positions`, [x, y], bPosition, aPosition);
+          if (
+            callback(
+              [A, aFlags, aInitials],
+              [B, bFlags, bInitials],
+              [abCommonFlags, abCommonInitials]
+            )
+          ) {
+            return true;
+          }
+        });
+    });
 }

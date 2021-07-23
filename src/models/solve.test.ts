@@ -1,14 +1,14 @@
 import { Cell } from "./Cell";
 import { Grid } from "./Grid";
-import { solve } from "./solver";
+import { Solution, solve } from "./solver";
 
 const flagged = "!";
 const f = flagged;
 
-const unrevealed = "";
+const unrevealed = "?";
 const _ = unrevealed;
 
-const digged = ".";
+const digged = "_";
 const d = digged;
 
 type MineCount = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
@@ -27,7 +27,9 @@ function generateGridMark(grid: Grid<Cell>): GridMark {
         cell.state === "flagged"
           ? flagged
           : cell.state === "revealed"
-          ? (cell.siblingsCount as MineCount)
+          ? cell.surroundingsCount === -1
+            ? digged
+            : (cell.surroundingsCount as MineCount)
           : unrevealed
       );
     }
@@ -45,7 +47,8 @@ function parseGridMark(gridMark: GridMark): Grid<Cell> {
       slots.push(parseGridCellMark(cell));
     });
   });
-  return new Grid(width, height, slots);
+  const grid = new Grid(width, height, slots);
+  return grid;
 }
 
 function parseGridCellMark(cell: GridCellMark): Cell {
@@ -82,12 +85,40 @@ const cases: {
     before: [
       [1, _],
       [1, _],
-      [2, _],
+      [_, _],
     ],
     after: [
       [1, _],
       [1, _],
+      [d, d],
+    ],
+  },
+  {
+    before: [
+      [1, _],
+      [2, _],
+      [1, _],
+    ],
+    after: [
+      [1, f],
       [2, d],
+      [1, f],
+    ],
+  },
+  {
+    before: [
+      [_, _],
+      [1, _],
+      [2, _],
+      [1, _],
+      [_, _],
+    ],
+    after: [
+      [d, d],
+      [1, f],
+      [2, d],
+      [1, f],
+      [d, d],
     ],
   },
   {
@@ -95,13 +126,13 @@ const cases: {
       [1, _],
       [1, _],
       [2, _],
-      [3, _],
+      [1, _],
     ],
     after: [
       [1, d],
       [1, f],
       [2, d],
-      [3, f],
+      [1, f],
     ],
   },
   {
@@ -118,53 +149,53 @@ const cases: {
   },
   {
     before: [
-      [_, f, 2, 0],
+      [_, f, 1, 0],
       [_, 3, 2, 1],
       [_, 2, 2, f],
-      [_, _, _, 3],
+      [_, _, _, 2],
     ],
 
     after: [
-      [f, f, 2, 0],
+      [f, f, 1, 0],
       [_, 3, 2, 1],
       [_, 2, 2, f],
-      [_, _, _, 3],
+      [d, d, f, 2],
     ],
   },
 ];
 
+function applySolutions(grid: Grid<Cell>, solutions: Solution[]) {
+  solutions.forEach(([position, action]) => {
+    const cell = grid.get(position);
+    switch (action) {
+      case "flag":
+        return grid.set(
+          position,
+          new Cell(cell.isMine, cell.surroundingsCount, "flagged")
+        );
+      case "reveal":
+        return grid.set(
+          position,
+          new Cell(cell.isMine, cell.surroundingsCount, "revealed")
+        );
+    }
+  });
+}
+
 cases.forEach((theCase, i) => {
   test(`case ${i}`, () => {
-    // const theCase = cases[0];
-    const grid = parseGridMark(theCase.before);
-    console.log(generateGridMark(grid));
+    let grid = parseGridMark(theCase.before);
 
     let solutions = solve(grid, null, []);
     do {
-      applySolutions();
+      // console.debug(generateGridMark(grid));
+      applySolutions(grid, solutions);
+      grid = parseGridMark(generateGridMark(grid));
       solutions = solve(grid, null, []);
     } while (solutions.length);
 
-    function applySolutions() {
-      solutions.forEach(([position, action]) => {
-        const cell = grid.get(position);
-        switch (action) {
-          case "flag":
-            return grid.set(
-              position,
-              new Cell(cell.isMine, cell.siblingsCount, "flagged")
-            );
-          case "reveal":
-            return grid.set(
-              position,
-              new Cell(cell.isMine, cell.siblingsCount, "revealed")
-            );
-        }
-      });
-    }
-
     const gridMark = generateGridMark(grid);
-    console.log(gridMark);
+    // console.debug(gridMark);
     expect(gridMark).toEqual(theCase.after);
   });
 });
