@@ -1,7 +1,8 @@
 import * as React from "react";
 import { pointerEventButtons } from "../constants";
 import { Game } from "../models/Game";
-import { matchPositions, Solution } from "../models/solver";
+import { matchPositions } from "../models/Position";
+import { Solution } from "../models/solver";
 import { CellContent } from "./CellContent";
 
 export function Cells({

@@ -1,12 +1,6 @@
 import { Cell } from "./Cell";
 import { BasicActions, Game } from "./Game";
-import { Position } from "./Grid";
-
-export function matchPositions(a: Position, b: Position) {
-  const [aX, aY] = a;
-  const [bX, bY] = b;
-  return aX === bX && aY === bY;
-}
+import { matchPositions, Position } from "./Position";
 
 type State = Game["grid"];
 type Action = BasicActions;

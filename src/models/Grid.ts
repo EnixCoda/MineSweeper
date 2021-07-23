@@ -1,6 +1,5 @@
 import { clone, Immutable, immutableMethod } from "./Immutable";
-
-export type Position = [number, number];
+import { Position } from "./Position";
 
 export class Grid<T> implements Immutable<Grid<T>> {
   readonly width: number;
