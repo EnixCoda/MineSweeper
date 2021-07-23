@@ -18,9 +18,9 @@ export function Cells({
     function fireAction(x: number, y: number) {
       const action = resolveAction(ref.current);
       if (action === "") return;
-      game.onAction(x, y, action);
+      game.onUIAction(x, y, action);
     },
-    [game, game.onAction]
+    [game, game.onUIAction]
   );
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent, x: number, y: number) => {

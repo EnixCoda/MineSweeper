@@ -22,7 +22,7 @@ export function useStatistics(
 ) {
   const [statistics, updateStatistics] = useStorage(
     "statistics",
-    Object.keys(levels).reduce(
+    Array.from(levels.keys()).reduce(
       (statistics, level) => ({
         ...statistics,
         [level]: { total: 0, wins: 0, records: [] },

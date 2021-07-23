@@ -12,43 +12,21 @@ export function solve(
   previousState: State | null,
   previousSolutions: Change[]
 ): Change[] {
-  return quickSolve(state, compare(state, previousState), previousSolutions);
+  return quickSolve(state);
 }
 
-function quickSolve(
-  state: State,
-  changes: Change[],
-  previousSolutions: Change[]
-): Change[] {
-  // previous solutions - changes + solutions from other changes
+function quickSolve(state: State): Change[] {
   const solutions: Change[] = [];
-  // find solutions that have not been taken
-  previousSolutions.forEach((solution) => {
-    if (!changes.find((change) => matchPositions(solution[0], change[0])))
-      solutions.push(solution);
-  });
-
-  const wentPositions: Position[] = [];
   // find new solutions around changes
-  changes.forEach(([position]) => {
-    state.getSurroundings(position, 2).forEach(([[x, y], cell]) => {
-      if (cell.state === "initial") {
-        if (wentPositions.some((position) => matchPositions(position, [x, y])))
-          return;
-
-        wentPositions.push([x, y]);
-        const action = getCellAction(state, x, y, cell);
-        if (action) solutions.push([[x, y], action]);
-      }
-    });
+  state.scan((position, cell) => {
+    if (cell.state === "initial") {
+      const [x, y] = position;
+      const action = getCellAction(state, x, y, cell);
+      if (action) solutions.push([position, action]);
+    }
   });
 
-  return solutions.filter(
-    ([position], i, solutions) =>
-      !solutions
-        .slice(0, i)
-        .some(([$position]) => matchPositions(position, $position))
-  );
+  return solutions;
 }
 
 function compare(state: State, previousState: State | null) {
@@ -173,15 +151,6 @@ function isFlagOverflow(
   [B, bFlags, bInitials]: number[],
   [abCommonFlags, abCommonInitials]: number[]
 ) {
-  // console.log(
-  //   `isFlagOverflow`,
-  //   [A, aFlags, aInitials],
-  //   [B, bFlags, bInitials],
-  //   [abCommonFlags, abCommonInitials],
-  //   B - bFlags >=
-  //     Math.min(A - aFlags, B - bFlags, abCommonInitials) +
-  //       (bInitials - abCommonInitials)
-  // );
   return (
     B - bFlags >=
     Math.min(A - aFlags, B - bFlags, abCommonInitials) +
@@ -200,17 +169,6 @@ function isMineInShort(
   [B, bFlags, bInitials]: number[],
   [abCommonFlags, abCommonInitials]: number[]
 ) {
-  // console.log(
-  //   `isMineInShort`,
-  //   [A, aFlags, aInitials],
-  //   [B, bFlags, bInitials],
-  //   [abCommonFlags, abCommonInitials],
-  //   Math.max(
-  //     A - aFlags - (aInitials - abCommonInitials),
-  //     B - bFlags - (bInitials - abCommonInitials)
-  //   ) >=
-  //     B - bFlags
-  // );
   return (
     Math.max(
       A - aFlags - (aInitials - abCommonInitials),
@@ -268,7 +226,6 @@ function scanChained(
           const abCommonFlags = filterState("flagged", commonOfAB).length;
           const abCommonInitials = filterState("initial", commonOfAB).length;
 
-          // console.log(`Positions`, [x, y], bPosition, aPosition);
           if (
             callback(
               [A, aFlags, aInitials],

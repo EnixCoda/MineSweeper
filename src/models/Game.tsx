@@ -58,13 +58,27 @@ export class Game {
     }
   }
 
+  beforeMutation() {
+    this.grid = this.grid.clone();
+  }
+
+  onSafeReveal(x: number, y: number) {
+    while (this.grid.get([x, y]).isMine) this.grid.shuffle();
+  }
+
   setGrid(grid: Game["grid"]) {
     this.grid = grid;
     this.onUpdate();
   }
 
-  onSafeReveal(x: number, y: number) {
-    while (this.grid.get([x, y]).isMine) this.grid.shuffle();
+  mutate(mutation: () => void) {
+    this.beforeMutation();
+    mutation();
+    this.onUpdate();
+  }
+
+  onUIAction(x: number, y: number, action: Actions) {
+    this.mutate(() => this.onAction(x, y, action));
   }
 
   onAction(x: number, y: number, action: Actions) {
@@ -79,10 +93,8 @@ export class Game {
       );
       if (countFlags !== cell.surroundingsCount) return;
 
-      this.setGrid(this.grid.clone());
       surroundings.forEach(([[x, y]]) => this.onBaseAction(x, y, "reveal"));
     } else {
-      this.setGrid(this.grid.clone());
       this.onBaseAction(x, y, action);
     }
   }
@@ -128,8 +140,6 @@ export class Game {
         if (typeof transform === "string") cell.state = transform;
         else transform(x, y, cell);
       });
-
-      this.onUpdate();
     }
   }
 }

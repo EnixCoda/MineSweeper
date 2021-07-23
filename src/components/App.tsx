@@ -14,7 +14,8 @@ import { StatusBar } from "./StatusBar";
 import { useSolutions } from "./useSolutions";
 import { fullHeight, VH } from "./VH";
 
-const enableTimeTravel = false
+const enableTimeTravel = false;
+const showSolutions = false;
 
 export function App() {
   const update = useUpdate();
@@ -27,11 +28,15 @@ export function App() {
 
   const [history, goBack] = useHistory(game.grid);
 
-  const solutions = useSolutions(game);
+  const [showHint, setShowHint] = React.useState(false);
 
+  const solutions = useSolutions(game);
   const applySolutions = React.useCallback(
-    (solutions: Change[]) =>
-      solutions.forEach(([[x, y], action]) => game.onAction(x, y, action)),
+    (solutions: Change[]) => {
+      game.mutate(() =>
+        solutions.forEach(([[x, y], action]) => game.onAction(x, y, action))
+      );
+    },
     [game]
   );
 
@@ -40,15 +45,21 @@ export function App() {
     if (autoPlay && solutions.length) {
       let ran = false;
       const timeout = setTimeout(() => {
+        if (ran) return;
         ran = true;
         applySolutions(solutions);
-      }, 500);
+      }, 0 * 100);
 
       return () => {
         if (!ran) clearTimeout(timeout);
       };
     }
   }, [applySolutions, autoPlay, solutions]);
+
+  const $solutions = React.useMemo(
+    () => (autoPlay || showHint ? solutions : []),
+    [autoPlay, showHint, solutions]
+  );
 
   return (
     <VH>
@@ -71,6 +82,15 @@ export function App() {
             />
             Auto play
           </label>
+          <label>
+            <input
+              type="checkbox"
+              name="show-hint"
+              checked={showHint}
+              onChange={(e) => setShowHint(e.target.checked)}
+            />
+            Show Hint
+          </label>
           {enableTimeTravel && (
             <button
               disabled={game.state !== "playing" || history.length < 2}
@@ -84,8 +104,10 @@ export function App() {
             </button>
           )}
         </div>
-        <Cells game={game} solutions={solutions} />
-        <Solutions solutions={solutions} apply={applySolutions} />
+        <Cells game={game} solutions={$solutions} />
+        {showSolutions && (
+          <Solutions solutions={solutions} apply={applySolutions} />
+        )}
       </div>
     </VH>
   );

@@ -44,12 +44,6 @@ export class Grid<T> implements Immutable<Grid<T>> {
     this.slots[this.i(position)] = data;
   }
 
-  mutateSlot(position: Position, mutation: (slot: T) => void) {
-    const clone = this.clone();
-    mutation(clone.get(position));
-    return clone;
-  }
-
   immutableSet = immutableMethod(this.set);
 
   getSurroundings([x, y]: Position, range = 1) {
