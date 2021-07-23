@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Cell } from "../models/Cell";
 
-export function CellSiblingsCount({ cell }: { cell: Cell }) {
-  return <span>{cell.siblingsCount || null}</span>;
+export function CellSurroundingsCount({ cell }: { cell: Cell }) {
+  return <span>{cell.surroundingsCount || null}</span>;
 }
 
 export function CellMine() {
@@ -28,7 +28,7 @@ export function CellContent({ cell }: { cell: Cell }) {
         cell.isMine ? (
           <CellMine />
         ) : (
-          <CellSiblingsCount cell={cell} />
+          <CellSurroundingsCount cell={cell} />
         )
       ) : (
         ""

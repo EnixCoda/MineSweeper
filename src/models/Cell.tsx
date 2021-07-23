@@ -3,19 +3,19 @@ import { Immutable } from "./Immutable";
 export class Cell implements Immutable<Cell> {
   readonly isMine: boolean;
   state: "initial" | "flagged" | "revealed" = "initial";
-  siblingsCount: number;
+  surroundingsCount: number;
 
   clone() {
-    return new Cell(this.isMine, this.siblingsCount, this.state);
+    return new Cell(this.isMine, this.surroundingsCount, this.state);
   }
 
   constructor(
     isMine: Cell["isMine"],
-    siblingsCount: Cell["siblingsCount"] = 0,
+    surroundingsCount: Cell["surroundingsCount"] = 0,
     state: Cell["state"] = "initial"
   ) {
     this.isMine = isMine;
-    this.siblingsCount = siblingsCount;
+    this.surroundingsCount = surroundingsCount;
     this.state = state;
   }
 }

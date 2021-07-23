@@ -98,7 +98,7 @@ export function Cells({
 function resolveAction(ref: { left: boolean; right: boolean }) {
   const { left, right } = ref;
   const action =
-    left && right ? "dig-siblings" : left ? "reveal" : right ? "flag" : "";
+    left && right ? "dig-surroundings" : left ? "reveal" : right ? "flag" : "";
   return action;
 }
 
@@ -114,12 +114,12 @@ function resolveCellClass(
         return "reveal";
       break;
     }
-    case "dig-siblings": {
+    case "dig-surroundings": {
       if (
         Math.abs(cellPosition[0] - pointer[0]) <= 1 &&
         Math.abs(cellPosition[1] - pointer[1]) <= 1
       )
-        return "dig-siblings";
+        return "dig-surroundings";
       break;
     }
   }

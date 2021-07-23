@@ -1,7 +1,7 @@
 import { Cell } from "./Cell";
 import { Grid } from "./Grid";
 
-export type Actions = BasicActions | "dig-siblings";
+export type Actions = BasicActions | "dig-surroundings";
 export type BasicActions = "reveal" | "flag";
 
 type TransformMap<
@@ -49,12 +49,12 @@ export class Game {
     return unrevealed;
   }
 
-  private setSiblingsCount(x: number, y: number) {
+  private setSurroundingsCount(x: number, y: number) {
     const cell = this.grid.get([x, y]);
     if (cell.isMine === false) {
-      cell.siblingsCount = this.grid
-        .getSiblings([x, y])
-        .filter(([position]) => this.grid.get(position).isMine).length;
+      cell.surroundingsCount = this.grid
+        .getSurroundings([x, y])
+        .filter(([position, cell]) => cell.isMine).length;
     }
   }
 
@@ -69,19 +69,18 @@ export class Game {
 
   onAction(x: number, y: number, action: Actions) {
     const cell = this.grid.get([x, y]);
-    if (action === "dig-siblings") {
+    if (action === "dig-surroundings") {
       if (cell.state !== "revealed") return;
 
       let countFlags = 0;
-      const siblings = this.grid.getSiblings([x, y]);
-      siblings.forEach(
-        ([position]) =>
-          (countFlags += this.grid.get(position).state === "flagged" ? 1 : 0)
+      const surroundings = this.grid.getSurroundings([x, y]);
+      surroundings.forEach(
+        ([position, cell]) => (countFlags += cell.state === "flagged" ? 1 : 0)
       );
-      if (countFlags !== cell.siblingsCount) return;
+      if (countFlags !== cell.surroundingsCount) return;
 
       this.setGrid(this.grid.clone());
-      siblings.forEach(([[x, y]]) => this.onBaseAction(x, y, "reveal"));
+      surroundings.forEach(([[x, y]]) => this.onBaseAction(x, y, "reveal"));
     } else {
       this.setGrid(this.grid.clone());
       this.onBaseAction(x, y, action);
@@ -102,10 +101,10 @@ export class Game {
           if (cell.isMine) this.state = "lose";
           else {
             if (this.unrevealedCount === this.mineCount) this.state = "win";
-            this.setSiblingsCount(x, y);
-            if (cell.siblingsCount === 0)
+            this.setSurroundingsCount(x, y);
+            if (cell.surroundingsCount === 0)
               this.grid
-                .getSiblings([x, y])
+                .getSurroundings([x, y])
                 .forEach(([[$x, $y]]) => this.onBaseAction($x, $y, "reveal"));
           }
         },

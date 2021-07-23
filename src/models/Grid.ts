@@ -53,8 +53,8 @@ export class Grid<T> implements Immutable<Grid<T>> {
 
   immutableSet = immutableMethod(this.set);
 
-  getSiblings([x, y]: Position, range = 1) {
-    const siblings: [Position, T][] = [];
+  getSurroundings([x, y]: Position, range = 1) {
+    const surroundings: [Position, T][] = [];
     for (let dx = -range; dx <= range; ++dx) {
       const $x = x + dx;
       if ($x < 0 || $x >= this.width) continue;
@@ -64,10 +64,10 @@ export class Grid<T> implements Immutable<Grid<T>> {
 
         if (dx === 0 && dy === 0) continue;
         const position: Position = [$x, $y];
-        siblings.push([position, this.get(position)]);
+        surroundings.push([position, this.get(position)]);
       }
     }
-    return siblings;
+    return surroundings;
   }
 
   shuffle() {

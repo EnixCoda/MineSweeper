@@ -39,7 +39,7 @@ function quickSolve(
   const wentPositions: Position[] = [];
   // find new solutions around changes
   changes.forEach(([position]) => {
-    state.getSiblings(position, 2).forEach(([[x, y], cell]) => {
+    state.getSurroundings(position, 2).forEach(([[x, y], cell]) => {
       if (cell.state === "initial") {
         if (wentPositions.some((position) => matchPositions(position, [x, y])))
           return;
@@ -102,7 +102,7 @@ function getPotentialMinesAmount(state: State, position: Position, cell: Cell) {
   return (
     cell.state === "revealed" &&
     state
-      .getSiblings(position)
+      .getSurroundings(position)
       .filter(
         ([_, $cell]) => $cell.state === "initial" || $cell.state === "flagged"
       ).length
@@ -116,14 +116,14 @@ function shouldFlagCell(
   cell: Cell
 ): boolean {
   if (cell.state !== "initial") return false;
-  // 1. Any sibling cell satisfies that the amount of remaining cells matches the amount of not flagged mines
+  // 1. Any surrounding cell satisfies that the amount of remaining cells matches the amount of not flagged mines
   if (
     state
-      .getSiblings([x, y])
+      .getSurroundings([x, y])
       .some(
         ([position, $cell]) =>
           getPotentialMinesAmount(state, position, $cell) ===
-          $cell.siblingsCount
+          $cell.surroundingsCount
       )
   ) {
     return true;
@@ -141,9 +141,9 @@ function cellHasEnoughFlags(
   if (cell.state === "revealed") {
     return (
       state
-        .getSiblings(position)
+        .getSurroundings(position)
         .filter(([_, $cell]) => $cell.state === "flagged").length ===
-      cell.siblingsCount
+      cell.surroundingsCount
     );
   }
   return false;
@@ -156,10 +156,10 @@ function shouldDigCell(
   cell: Cell
 ): boolean {
   if (cell.state !== "initial") return false;
-  // 1. Any sibling cell satisfies that the amount of flagged cells matches the amount of mines
+  // 1. Any surrounding cell satisfies that the amount of flagged cells matches the amount of mines
   if (
     state
-      .getSiblings([x, y])
+      .getSurroundings([x, y])
       .some(([position, $cell]) => cellHasEnoughFlags(state, position, $cell))
   ) {
     return true;
