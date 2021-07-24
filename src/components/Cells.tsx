@@ -21,18 +21,22 @@ export const Cells = React.memo(function Cells({
   const ref = React.useRef({ left: false, right: false });
   const [pointer, updatePointer] = React.useState<Position>([-1, -1]);
   const [action, setAction] = React.useState<Actions | null>(null);
+  const updateAction = React.useCallback(() => {
+    const { left, right } = ref.current;
+    const action =
+      left && right
+        ? "dig-surroundings"
+        : left
+        ? defaultAction
+        : right
+        ? "flag"
+        : null;
+    setAction(action);
+    return action;
+  }, []);
   const fireAction = React.useCallback(
     function fireAction(position: Position) {
-      const { left, right } = ref.current;
-      const action =
-        left && right
-          ? "dig-surroundings"
-          : left
-          ? defaultAction
-          : right
-          ? "flag"
-          : null;
-      setAction(action);
+      const action = updateAction();
       if (action === null) return;
       game.onUIAction(position, action);
     },
@@ -44,6 +48,7 @@ export const Cells = React.memo(function Cells({
       fireAction(position);
       ref.current.left = false;
       ref.current.right = false;
+      updateAction()
     },
     [fireAction]
   );
@@ -57,6 +62,7 @@ export const Cells = React.memo(function Cells({
       }
       ref.current.left ||= Boolean(e.buttons & pointerEventButtons.LEFT);
       ref.current.right ||= Boolean(e.buttons & pointerEventButtons.RIGHT);
+      updateAction();
     },
     []
   );
@@ -66,6 +72,7 @@ export const Cells = React.memo(function Cells({
       if (e.buttons === 0) return;
       ref.current.left ||= Boolean(e.buttons & pointerEventButtons.LEFT);
       ref.current.right ||= Boolean(e.buttons & pointerEventButtons.RIGHT);
+      updateAction();
     },
     []
   );
