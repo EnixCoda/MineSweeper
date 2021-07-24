@@ -1,8 +1,7 @@
 html,
 body {
-  margin: 0;
-  box-sizing: border-box;
   font-family: system-ui;
+  user-select: none;
 }
 
 .viewport {
@@ -10,23 +9,6 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-
-  .status-bar {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: 48px;
-    justify-items: center;
-    align-items: center;
-    padding: 4px 8px;
-
-    .level-select {
-      width: 80px;
-    }
-  }
-
-  .statistics {
-    margin-bottom: 12px;
-  }
 
   .cells-view {
     flex: 1;

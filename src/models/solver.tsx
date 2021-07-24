@@ -20,8 +20,7 @@ function quickSolve(state: State): Change[] {
   // find new solutions around changes
   state.scan((position, cell) => {
     if (cell.state === "initial") {
-      const [x, y] = position;
-      const action = getCellAction(state, x, y, cell);
+      const action = getCellAction(state, position, cell);
       if (action) solutions.push([position, action]);
     }
   });
@@ -59,13 +58,12 @@ function getChangeAction(state: Cell["state"]) {
 
 function getCellAction(
   state: State,
-  x: number,
-  y: number,
+  position: Position,
   cell: Cell
 ): Action | null {
   if (cell.state === "initial") {
-    if (shouldDigCell(state, x, y, cell)) return "reveal";
-    if (shouldFlagCell(state, x, y, cell)) return "flag";
+    if (shouldDigCell(state, position, cell)) return "reveal";
+    if (shouldFlagCell(state, position, cell)) return "flag";
   }
   return null;
 }
@@ -81,17 +79,12 @@ function getUnrevealedAmount(state: State, position: Position, cell: Cell) {
   );
 }
 
-function shouldFlagCell(
-  state: State,
-  x: number,
-  y: number,
-  cell: Cell
-): boolean {
+function shouldFlagCell(state: State, position: Position, cell: Cell): boolean {
   if (cell.state !== "initial") return false;
   // 1. Any surrounding cell satisfies that the amount of remaining cells matches the amount of not flagged mines
   if (
     state
-      .getSurroundings([x, y])
+      .getSurroundings(position)
       .some(
         ([position, $cell]) =>
           getUnrevealedAmount(state, position, $cell) ===
@@ -101,7 +94,7 @@ function shouldFlagCell(
     return true;
   }
   // 2. If it is not mine, the remaining cells would fail other surrounding cells
-  if (scanChained(state, [x, y], isFlagOverflow)) return true;
+  if (scanChained(state, position, isFlagOverflow)) return true;
 
   // 3. ...
   return false;
@@ -123,23 +116,18 @@ function cellHasEnoughFlags(
   return false;
 }
 
-function shouldDigCell(
-  state: State,
-  x: number,
-  y: number,
-  cell: Cell
-): boolean {
+function shouldDigCell(state: State, position: Position, cell: Cell): boolean {
   if (cell.state !== "initial") return false;
   // 1. Any surrounding cell satisfies that the amount of flagged cells matches the amount of mines
   if (
     state
-      .getSurroundings([x, y])
+      .getSurroundings(position)
       .some(([position, $cell]) => cellHasEnoughFlags(state, position, $cell))
   ) {
     return true;
   }
   // 2. If is mine, the remaining cells would fail other surrounding cells
-  if (scanChained(state, [x, y], isMineInShort)) return true;
+  if (scanChained(state, position, isMineInShort)) return true;
 
   // 3. ...
   return false;
@@ -180,7 +168,7 @@ function isMineInShort(
 
 function scanChained(
   state: State,
-  [x, y]: Position,
+  position: Position,
   callback: (
     [A, aFlags, aInitials]: number[],
     [B, bFlags, bInitials]: number[],
@@ -188,7 +176,7 @@ function scanChained(
   ) => boolean
 ): boolean {
   return state
-    .getSurroundings([x, y])
+    .getSurroundings(position)
     .filter(([bPosition, bCell]) => bCell.state === "revealed")
     .some(([bPosition, bCell]) => {
       const B = bCell.surroundingsCount;
@@ -196,7 +184,7 @@ function scanChained(
       return surroundingsOfB
         .filter(([aPosition, aCell]) => aCell.state === "revealed")
         .filter(
-          ([aPosition, aCell]) => !matchPositions(aPosition, [x, y]) // ignore current cell
+          ([aPosition, aCell]) => !matchPositions(aPosition, position) // ignore current cell
         )
         .some(([aPosition, aCell]) => {
           const A = aCell.surroundingsCount;
@@ -205,7 +193,7 @@ function scanChained(
           // ignore cells that cover A
           if (
             surroundingsOfA.some(([aaPosition]) =>
-              matchPositions(aaPosition, [x, y])
+              matchPositions(aaPosition, position)
             )
           )
             return false;

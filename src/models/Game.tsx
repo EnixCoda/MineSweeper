@@ -1,5 +1,6 @@
 import { Cell } from "./Cell";
 import { Grid } from "./Grid";
+import { Position } from "./Position";
 
 export type Actions = BasicActions | "dig-surroundings";
 export type BasicActions = "reveal" | "flag";
@@ -30,7 +31,6 @@ export class Game {
       .fill(null)
       .map((_, i) => new Cell(i < this.mineCount));
     this.grid = new Grid(width, height, cells);
-    this.grid.shuffle();
   }
 
   get flagCount(): number {
@@ -49,12 +49,12 @@ export class Game {
     return unrevealed;
   }
 
-  private setSurroundingsCount(x: number, y: number) {
-    const cell = this.grid.get([x, y]);
+  private setSurroundingsCount(position: Position) {
+    const cell = this.grid.get(position);
     if (cell.isMine === false) {
       cell.surroundingsCount = this.grid
-        .getSurroundings([x, y])
-        .filter(([position, cell]) => cell.isMine).length;
+        .getSurroundings(position)
+        .filter(([$position, $cell]) => $cell.isMine).length;
     }
   }
 
@@ -62,8 +62,9 @@ export class Game {
     this.grid = this.grid.clone();
   }
 
-  onSafeReveal(x: number, y: number) {
-    while (this.grid.get([x, y]).isMine) this.grid.shuffle();
+  onSafeReveal(position: Position) {
+    do this.grid.shuffle();
+    while (this.grid.get(position).isMine);
   }
 
   setGrid(grid: Game["grid"]) {
@@ -77,47 +78,51 @@ export class Game {
     this.onUpdate();
   }
 
-  onUIAction(x: number, y: number, action: Actions) {
-    this.mutate(() => this.onAction(x, y, action));
+  onUIAction(position: Position, action: Actions) {
+    this.mutate(() => this.onAction(position, action));
   }
 
-  onAction(x: number, y: number, action: Actions) {
-    const cell = this.grid.get([x, y]);
+  onAction(position: Position, action: Actions) {
+    const cell = this.grid.get(position);
     if (action === "dig-surroundings") {
       if (cell.state !== "revealed") return;
 
       let countFlags = 0;
-      const surroundings = this.grid.getSurroundings([x, y]);
+      const surroundings = this.grid.getSurroundings(position);
       surroundings.forEach(
         ([position, cell]) => (countFlags += cell.state === "flagged" ? 1 : 0)
       );
       if (countFlags !== cell.surroundingsCount) return;
 
-      surroundings.forEach(([[x, y]]) => this.onBaseAction(x, y, "reveal"));
+      surroundings.forEach(([position]) =>
+        this.onBaseAction(position, "reveal")
+      );
     } else {
-      this.onBaseAction(x, y, action);
+      this.onBaseAction(position, action);
     }
   }
 
   cellTransformMap: TransformMap<
     Cell["state"],
     BasicActions,
-    [number, number, Cell]
+    [Position, Cell]
   > = {
     initial: {
       reveal: [
         "revealed",
-        (x, y, cell) => {
+        (position, cell) => {
           if (this.state === "idle") this.state = "playing";
 
           if (cell.isMine) this.state = "lose";
           else {
             if (this.unrevealedCount === this.mineCount) this.state = "win";
-            this.setSurroundingsCount(x, y);
+            this.setSurroundingsCount(position);
             if (cell.surroundingsCount === 0)
               this.grid
-                .getSurroundings([x, y])
-                .forEach(([[$x, $y]]) => this.onBaseAction($x, $y, "reveal"));
+                .getSurroundings(position)
+                .forEach(([$position]) =>
+                  this.onBaseAction($position, "reveal")
+                );
           }
         },
       ],
@@ -128,17 +133,18 @@ export class Game {
     },
   };
 
-  private onBaseAction(x: number, y: number, action: BasicActions) {
-    if (this.state === "idle" && action === "reveal") this.onSafeReveal(x, y);
+  private onBaseAction(position: Position, action: BasicActions) {
+    if (this.state === "idle" && action === "reveal")
+      this.onSafeReveal(position);
 
     if (this.state === "win" || this.state === "lose") return;
 
-    const cell = this.grid.get([x, y]);
+    const cell = this.grid.get(position);
     const next = this.cellTransformMap[cell.state]?.[action];
     if (next) {
       next.forEach((transform) => {
         if (typeof transform === "string") cell.state = transform;
-        else transform(x, y, cell);
+        else transform(position, cell);
       });
     }
   }

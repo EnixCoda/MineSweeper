@@ -1,46 +1,25 @@
+import { Grid } from "@chakra-ui/react";
 import * as React from "react";
-import { Level, levels } from "../constants";
 import { Game } from "../models/Game";
 import { formatTime } from "../utils";
 
-export function StatusBar({
-  time,
-  game,
-  level,
-  setLevel,
-  startGame,
-}: {
-  time: number;
-  game: Game;
-  level: Level;
-  setLevel: (level: Level) => void;
-  startGame: (level: { width: number; height: number; mines: number }) => void;
-}) {
+export function StatusBar({ time, game }: { time: number; game: Game }) {
   return (
-    <div>
-      <div className="start-game">
-        <select
-          name="level"
-          className="level-select"
-          onChange={(e) => setLevel(e.target.value as Level)}
-        >
-          {Array.from(levels.keys()).map((level) => (
-            <option key={level} value={level}>
-              {level}
-            </option>
-          ))}
-        </select>
-        <button onClick={() => startGame(levels.get(level)!)}>New Game</button>
+    <Grid
+      gridTemplateColumns="repeat(3, 1fr)"
+      gridTemplateRows="48px"
+      justifyItems="center"
+      alignItems="center"
+      paddingX="2"
+      paddingY="1"
+    >
+      <div className="flex-row">
+        <span className="emoji-center">⏱</span>
+        <pre>{formatTime(time, 5)}</pre>
       </div>
-      <div className="status-bar">
-        <div className="flex-row">
-          <span className="emoji-center">⏱</span>
-          <pre>{formatTime(time)}</pre>
-        </div>
-        <GameState state={game.state} />
-        <span>{game.mineCount - game.flagCount} 💣</span>
-      </div>
-    </div>
+      <GameState state={game.state} />
+      <span>{game.mineCount - game.flagCount} 💣</span>
+    </Grid>
   );
 }
 
