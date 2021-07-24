@@ -26,9 +26,10 @@ import { Solutions } from "./Solutions";
 import { StatusBar } from "./StatusBar";
 import { fullHeight, VH } from "./VH";
 
-const enableTimeTravel = false;
-const showSolutions = false;
-const showAutoPlay = false;
+const searchParams = new URL(location.href).searchParams;
+const enableTimeTravel = searchParams.get("time-travel") !== null;
+const showSolutions = searchParams.get("solutions") !== null;
+const showAutoPlay = searchParams.get("autoplay") !== null;
 
 export function App() {
   const update = useUpdate();
