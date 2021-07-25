@@ -13,7 +13,7 @@ const digits = [
 export function CellSurroundingsCount({ cell }: { cell: Cell }) {
   return (
     <span>
-      {cell.surroundingsCount > 0 ? digits[0][cell.surroundingsCount] : "⬜️"}
+      {cell.surroundingsCount > 0 ? digits[1][cell.surroundingsCount] : "⬜️"}
     </span>
   );
 }
@@ -36,20 +36,22 @@ export const CellContent = React.memo(function CellContent({
   cell: Cell;
 }) {
   return (
-    <span className={`cell-content emoji-center`}>
-      {cell.state === "flagged" ? (
-        <CellFlagged />
-      ) : cell.state === "initial" ? (
-        <CellInitial />
-      ) : cell.state === "revealed" ? (
-        cell.isMine ? (
-          <CellMine />
+    <span className="cell-content">
+      <span className="emoji-center">
+        {cell.state === "flagged" ? (
+          <CellFlagged />
+        ) : cell.state === "initial" ? (
+          <CellInitial />
+        ) : cell.state === "revealed" ? (
+          cell.isMine ? (
+            <CellMine />
+          ) : (
+            <CellSurroundingsCount cell={cell} />
+          )
         ) : (
-          <CellSurroundingsCount cell={cell} />
-        )
-      ) : (
-        ""
-      )}
+          ""
+        )}
+      </span>
     </span>
   );
 });
