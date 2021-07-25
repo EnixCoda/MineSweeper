@@ -24,7 +24,10 @@ export const Cells = React.memo(function Cells({
         : [pointer],
     [action, pointer, game.grid]
   );
-  const lastDigTime = React.useRef(0);
+  const lastDig = React.useRef<{ time: number; position: Position }>({
+    time: 0,
+    position: [-1, -1],
+  });
   const doubleDigToDigSurroundingsTimeThreshold = 300;
   const updateAction = React.useCallback(() => {
     const { left, right } = ref.current;
@@ -46,12 +49,16 @@ export const Cells = React.memo(function Cells({
 
       if (action === "reveal") {
         if (
-          Date.now() - lastDigTime.current <
-          doubleDigToDigSurroundingsTimeThreshold
+          Date.now() - lastDig.current.time <
+            doubleDigToDigSurroundingsTimeThreshold &&
+          matchPositions(lastDig.current.position, position)
         ) {
           action = "dig-surroundings";
         }
-        lastDigTime.current = Date.now();
+        lastDig.current = {
+          time: Date.now(),
+          position,
+        };
       }
       game.onUIAction(position, action);
     },
