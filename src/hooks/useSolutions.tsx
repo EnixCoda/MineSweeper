@@ -9,11 +9,11 @@ export function useSolutions(game: Game, active: boolean) {
   const [solutions, setSolutions] = React.useState<Solution[]>([]);
   React.useEffect(() => {
     setLastState(game.grid);
-    setSolutions(
-      active && game.state === "playing"
-        ? solve(game.grid, lastState, solutions)
-        : []
-    );
+    if (active) {
+      setSolutions(
+        game.state === "playing" ? solve(game.grid, lastState, solutions) : []
+      );
+    }
   }, [game, game.grid, game.state, active]);
 
   return solutions;

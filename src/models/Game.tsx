@@ -18,6 +18,7 @@ export class Game {
   public grid: Grid<Cell>;
   public state: "idle" | "playing" | "win" | "lose" = "idle";
   private onUpdate: () => void;
+  private revealedCount: number = 0;
   constructor(
     width: Game["grid"]["width"],
     height: Game["grid"]["height"],
@@ -30,6 +31,9 @@ export class Game {
     const cells: Cell[] = new Array(width * height)
       .fill(null)
       .map((_, i) => new Cell(i < this.mineCount));
+    cells.forEach((cell) => {
+      if (cell.state === "revealed") ++this.revealedCount;
+    });
     this.grid = new Grid(width, height, cells);
   }
 
@@ -39,14 +43,6 @@ export class Game {
       if (cell.state === "flagged") ++count;
     });
     return count;
-  }
-
-  private get unrevealedCount(): number {
-    let unrevealed = this.grid.width * this.grid.height;
-    this.grid.scan((_, cell) => {
-      if (cell.state === "revealed") --unrevealed;
-    });
-    return unrevealed;
   }
 
   private setSurroundingsCount(position: Position) {
@@ -115,7 +111,9 @@ export class Game {
 
           if (cell.isMine) this.state = "lose";
           else {
-            if (this.unrevealedCount === this.mineCount) this.state = "win";
+            ++this.revealedCount;
+            if (this.grid.size === this.revealedCount + this.mineCount)
+              this.state = "win";
             this.setSurroundingsCount(position);
             if (cell.surroundingsCount === 0)
               this.grid

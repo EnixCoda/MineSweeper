@@ -31,7 +31,7 @@ import {
 import { IntInput } from "./NumberInput";
 import { SimpleStatistics } from "./SimpleStatistics";
 
-export function LevelSelect({
+export const LevelSelect = React.memo(function LevelSelect({
   level,
   setLevel,
   customLevelSettings,
@@ -147,4 +147,4 @@ export function LevelSelect({
       </Modal>
     </>
   );
-}
+});

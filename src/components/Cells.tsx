@@ -1,9 +1,12 @@
+import { useCallbackRef, useWhyDidYouUpdate } from "@chakra-ui/react";
 import * as React from "react";
 import { pointerEventButtons } from "../constants";
 import { useKeyboardEvents } from "../hooks/useKeyboardHold";
+import { Cell } from "../models/Cell";
 import { Actions, BasicActions, Game } from "../models/Game";
 import { matchPositions, Position } from "../models/Position";
 import { Solution } from "../models/solver";
+import { customDiff } from "../utils";
 import { CellContent } from "./CellContent";
 
 export const Cells = React.memo(function Cells({
@@ -12,6 +15,7 @@ export const Cells = React.memo(function Cells({
   solutions,
 }: {
   game: Game;
+  grid: Game["grid"]; // unused prop for triggering in-time re-render
   defaultAction: BasicActions;
   solutions: Solution[];
 }) {
@@ -49,7 +53,7 @@ export const Cells = React.memo(function Cells({
     position: [-1, -1],
   });
   const doubleDigToDigSurroundingsTimeThreshold = 300;
-  const updateAction = React.useCallback(() => {
+  const updateAction = useCallbackRef(() => {
     const { left, right } = ref.current;
     const action: Actions | null =
       left && right
@@ -62,7 +66,7 @@ export const Cells = React.memo(function Cells({
     setAction(action);
     return action;
   }, [defaultAction]);
-  const fireAction = React.useCallback(
+  const fireAction = useCallbackRef(
     function fireAction(position: Position) {
       let action = updateAction();
       if (action === null) return;
@@ -82,7 +86,7 @@ export const Cells = React.memo(function Cells({
       }
       game.onUIAction(position, action);
     },
-    [game, game.onUIAction, defaultAction]
+    [game, game.onUIAction, updateAction]
   );
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent, position: Position) => {
@@ -92,7 +96,7 @@ export const Cells = React.memo(function Cells({
       ref.current.right = false;
       updateAction();
     },
-    [fireAction]
+    []
   );
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent, position: Position) => {
@@ -120,6 +124,7 @@ export const Cells = React.memo(function Cells({
   );
 
   let i = 0;
+
   return (
     <div className={`cells-view state-${game.state}`}>
       <div
@@ -130,30 +135,83 @@ export const Cells = React.memo(function Cells({
         }}
       >
         {game.grid.map((position, cell) => (
-          <div
+          <CellContentWrapper
             key={i++}
-            className={`cell state-${cell.state} pointer-${
+            position={position}
+            cell={cell}
+            pointerActionState={
               action &&
               actionAffectedPositions.some(($position) =>
                 matchPositions(position, $position)
               )
                 ? action
                 : ""
-            } solution-${
-              solutions.find(([$position]) =>
-                matchPositions(position, $position)
-              )?.[1] || ""
-            }`}
-            role="button"
-            onContextMenu={(e) => e.preventDefault()}
-            onPointerUp={(e) => onPointerUp(e, position)}
-            onPointerMove={(e) => onPointerMove(e, position)}
-            onPointerDown={(e) => onPointerDown(e, position)}
-          >
-            <CellContent cell={cell} />
-          </div>
+            }
+            solutions={solutions}
+            onPointerUp={onPointerUp}
+            onPointerMove={onPointerMove}
+            onPointerDown={onPointerDown}
+          />
         ))}
       </div>
     </div>
   );
 });
+
+const CellContentWrapper = React.memo(
+  function CellContentWrapper({
+    position,
+    cell,
+    pointerActionState,
+    solutions,
+    onPointerUp,
+    onPointerMove,
+    onPointerDown,
+  }: {
+    position: Position;
+    cell: Cell;
+    pointerActionState: string;
+    solutions: Solution[];
+    onPointerUp(e: React.PointerEvent, position: Position): void;
+    onPointerMove(e: React.PointerEvent, position: Position): void;
+    onPointerDown(e: React.PointerEvent, position: Position): void;
+  }) {
+    false &&
+      useWhyDidYouUpdate(position.join(), {
+        position,
+        cell,
+        pointerActionState,
+        solutions,
+        onPointerUp,
+        onPointerMove,
+        onPointerDown,
+      });
+    return (
+      <div
+        className={`cell state-${
+          cell.state
+        } pointer-${pointerActionState} solution-${
+          solutions.find(([$position]) =>
+            matchPositions($position, position)
+          )?.[1] || ""
+        }`}
+        role="button"
+        onContextMenu={(e) => e.preventDefault()}
+        onPointerUp={(e) => onPointerUp(e, position)}
+        onPointerMove={(e) => onPointerMove(e, position)}
+        onPointerDown={(e) => onPointerDown(e, position)}
+      >
+        <CellContent cell={cell} />
+      </div>
+    );
+  },
+  (prevProps, nextProps) =>
+    customDiff(prevProps, nextProps, {
+      position(prev, next) {
+        return matchPositions(prev, next);
+      },
+      cell(prev, next) {
+        return prev.state === next.state;
+      },
+    })
+);

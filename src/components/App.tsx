@@ -21,6 +21,7 @@ import { useStorage } from "../hooks/useStorage";
 import { useTimer } from "../hooks/useTimer";
 import { useToggleAutoPlay } from "../hooks/useToggleAutoPlay";
 import { useUpdate } from "../hooks/useUpdate";
+import { Game } from "../models/Game";
 import { customLevel, Level, levels } from "../models/Level";
 import { Solution } from "../models/solver";
 import { Cells } from "./Cells";
@@ -59,7 +60,7 @@ export function App() {
   const shouldShowSolutions = showHint || autoPlay;
   const shouldGetSolutions = showSolutionsTable || shouldShowSolutions;
   const solutions = useSolutions(game, shouldGetSolutions);
-  const visibleSolutions = React.useMemo(
+  const visibleSolutions = React.useMemo<Solution[]>(
     () => (shouldShowSolutions ? solutions : []),
     [shouldShowSolutions, solutions]
   );
@@ -77,7 +78,6 @@ export function App() {
     [game]
   );
   useAutoPlay(autoPlay, applySolutions, solutions);
-  const incAutoPlayCount = useToggleAutoPlay(game, autoPlay, setAutoPlay);
 
   const statistics = useStatistics(game, level, timer.value, autoPlay);
 
@@ -136,47 +136,19 @@ export function App() {
         </div>
         <Cells
           game={game}
+          grid={game.grid}
           defaultAction={flag ? "flag" : "reveal"}
           solutions={visibleSolutions}
         />
-        <Flex paddingY="4" justifyContent="space-evenly" alignItems="center">
-          <FormControl width="auto" display="inline-flex" alignItems="center">
-            <FormLabel mb="0" mr="2" ml="0">
-              Dig
-            </FormLabel>
-            <Switch
-              name="use-flag"
-              isChecked={flag}
-              onChange={(e) => setFlag(e.target.checked)}
-            />
-            <FormLabel mb="0" ml="2" mr="0">
-              Flag <Kbd>F</Kbd>
-            </FormLabel>
-          </FormControl>
-
-          <Flex flexDirection="column">
-            {showAutoPlay && (
-              <Checkbox
-                name="auto-play"
-                checked={autoPlay}
-                onChange={(e) => setAutoPlay(e.target.checked)}
-              >
-                Auto play
-              </Checkbox>
-            )}
-
-            <Checkbox
-              name="show-hint"
-              checked={showHint}
-              onChange={(e) => {
-                incAutoPlayCount();
-                setShowHint(e.target.checked);
-              }}
-            >
-              Show Hint
-            </Checkbox>
-          </Flex>
-        </Flex>
+        <ActionBar
+          game={game}
+          flag={flag}
+          setFlag={setFlag}
+          autoPlay={autoPlay}
+          setAutoPlay={setAutoPlay}
+          showHint={showHint}
+          setShowHint={setShowHint}
+        />
         {showSolutionsTable && (
           <Solutions solutions={solutions} apply={applySolutions} />
         )}
@@ -184,3 +156,64 @@ export function App() {
     </VH>
   );
 }
+
+const ActionBar = React.memo(function ActionBar({
+  game,
+  flag,
+  setFlag,
+  autoPlay,
+  setAutoPlay,
+  showHint,
+  setShowHint,
+}: {
+  game: Game;
+  flag: boolean;
+  setFlag: React.Dispatch<React.SetStateAction<boolean>>;
+  autoPlay: boolean;
+  setAutoPlay: React.Dispatch<React.SetStateAction<boolean>>;
+  showHint: boolean;
+  setShowHint: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const incAutoPlayCount = useToggleAutoPlay(game, autoPlay, setAutoPlay);
+
+  return (
+    <Flex paddingY="4" justifyContent="space-evenly" alignItems="center">
+      <FormControl width="auto" display="inline-flex" alignItems="center">
+        <FormLabel mb="0" mr="2" ml="0">
+          Dig
+        </FormLabel>
+        <Switch
+          name="use-flag"
+          isChecked={flag}
+          onChange={(e) => setFlag(e.target.checked)}
+        />
+        <FormLabel mb="0" ml="2" mr="0">
+          Flag <Kbd>F</Kbd>
+        </FormLabel>
+      </FormControl>
+
+      <Flex flexDirection="column">
+        {showAutoPlay && (
+          <Checkbox
+            name="auto-play"
+            checked={autoPlay}
+            onChange={(e) => setAutoPlay(e.target.checked)}
+          >
+            Auto play
+          </Checkbox>
+        )}
+
+        <Checkbox
+          name="show-hint"
+          checked={showHint}
+          onChange={(e) => {
+            incAutoPlayCount();
+            setShowHint(e.target.checked);
+          }}
+        >
+          Show Hint
+        </Checkbox>
+      </Flex>
+    </Flex>
+  );
+});

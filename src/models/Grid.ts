@@ -1,4 +1,4 @@
-import { clone, Immutable, immutableMethod } from "./Immutable";
+import { clone, Immutable } from "./Immutable";
 import { Position } from "./Position";
 
 export class Grid<T> implements Immutable<Grid<T>> {
@@ -44,8 +44,6 @@ export class Grid<T> implements Immutable<Grid<T>> {
     this.slots[this.i(position)] = data;
   }
 
-  immutableSet = immutableMethod(this.set);
-
   getSurroundings([x, y]: Position, range = 1) {
     const surroundings: [Position, T][] = [];
     for (let dx = -range; dx <= range; ++dx) {
@@ -75,12 +73,6 @@ export class Grid<T> implements Immutable<Grid<T>> {
 
     this.slots.forEach((_, i) => (this.slots[i] = slots[i]));
   }
-
-  // immutableShuffle() {
-  //   return this.clone().shuffle();
-  // }
-
-  immutableShuffle = immutableMethod(this.shuffle);
 
   scan(callback: (position: Position, slot: T) => void) {
     let i = 0;

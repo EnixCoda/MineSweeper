@@ -1,4 +1,4 @@
-import { Grid } from "@chakra-ui/react";
+import { Grid, GridItem, Text } from "@chakra-ui/react";
 import * as React from "react";
 import { Game } from "../models/Game";
 import { formatTime } from "../utils";
@@ -12,13 +12,17 @@ export function StatusBar({ time, game }: { time: number; game: Game }) {
       alignItems="center"
       paddingX="2"
       paddingY="1"
+      fontSize="xl"
     >
-      <div className="flex-row">
+      <GridItem justifySelf="flex-start">
         <span className="emoji-center">⏱</span>
-        <pre>{formatTime(time, 5)}</pre>
-      </div>
+        <Text as="span" fontFamily="mono" marginX="1">{formatTime(time, 5)}</Text>
+      </GridItem>
       <GameState state={game.state} />
-      <span>{game.mineCount - game.flagCount} 💣</span>
+      <GridItem justifySelf="flex-end">
+        <Text as="span" fontFamily="mono" marginX="1">{game.mineCount - game.flagCount}</Text>
+        <span className="emoji-center">💣</span>
+      </GridItem>
     </Grid>
   );
 }
