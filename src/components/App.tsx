@@ -49,7 +49,7 @@ export function App() {
   const [game, startGame] = useGame(update, getLevel(level));
   useUpdateEffect(() => {
     if (game.state === "idle") startGame(getLevel(level));
-  }, [level]);
+  }, [level, getLevel]);
   useGameTimerControl(game, timer);
 
   const [showHint, setShowHint] = React.useState(false);
