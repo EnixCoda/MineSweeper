@@ -1,5 +1,6 @@
 import * as React from "react";
 import { pointerEventButtons } from "../constants";
+import { useKeyboardEvents } from "../hooks/useKeyboardHold";
 import { Actions, BasicActions, Game } from "../models/Game";
 import { matchPositions, Position } from "../models/Position";
 import { Solution } from "../models/solver";
@@ -16,6 +17,25 @@ export const Cells = React.memo(function Cells({
 }) {
   const ref = React.useRef({ left: false, right: false });
   const [pointer, updatePointer] = React.useState<Position>([-1, -1]);
+  useKeyboardEvents(
+    "d",
+    React.useCallback(() => game.onUIAction(pointer, "reveal"), [pointer])
+  );
+  useKeyboardEvents(
+    "f",
+    React.useCallback(() => game.onUIAction(pointer, "flag"), [pointer])
+  );
+  useKeyboardEvents(
+    " ",
+    React.useCallback(
+      (e) => {
+        e.preventDefault(); // prevent page scrolling
+        game.onUIAction(pointer, "dig-surroundings");
+      },
+      [pointer]
+    )
+  );
+
   const [action, setAction] = React.useState<Actions | null>(null);
   const actionAffectedPositions = React.useMemo(
     () =>

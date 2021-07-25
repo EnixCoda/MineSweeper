@@ -14,6 +14,7 @@ import { useAutoPlay } from "../hooks/useAutoPlay";
 import { useGame } from "../hooks/useGame";
 import { useGameTimerControl } from "../hooks/useGameTimerControl";
 import { useHistory } from "../hooks/useHistory";
+import { useKeyboardEvents } from "../hooks/useKeyboardHold";
 import { useSolutions } from "../hooks/useSolutions";
 import { useStatistics } from "../hooks/useStatistics";
 import { useStorage } from "../hooks/useStorage";
@@ -83,20 +84,18 @@ export function App() {
   const [history, goBack] = useHistory(game.grid);
 
   const [flag, setFlag] = React.useState(false);
-  React.useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent): void => {
-      if (e.key === "f") setFlag(true);
-    };
-    const handleKeyUp = (e: KeyboardEvent): void => {
-      if (e.key === "f") setFlag(false);
-    };
-    document.addEventListener("keypress", handleKeyPress);
-    document.addEventListener("keyup", handleKeyUp);
-    return () => {
-      document.removeEventListener("keypress", handleKeyPress);
-      document.removeEventListener("keyup", handleKeyUp);
-    };
-  }, []);
+  useKeyboardEvents(
+    "n",
+    React.useCallback(
+      () => startGame(getLevel(level)),
+      [startGame, getLevel, level]
+    )
+  );
+  useKeyboardEvents(
+    "q",
+    React.useCallback(() => setFlag(true), []),
+    React.useCallback(() => setFlag(false), [])
+  );
 
   return (
     <VH>
