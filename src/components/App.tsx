@@ -5,6 +5,7 @@ import {
   Flex,
   FormControl,
   FormLabel,
+  Kbd,
   Switch,
   useUpdateEffect
 } from "@chakra-ui/react";
@@ -82,6 +83,20 @@ export function App() {
   const [history, goBack] = useHistory(game.grid);
 
   const [flag, setFlag] = React.useState(false);
+  React.useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent): void => {
+      if (e.key === "f") setFlag(true);
+    };
+    const handleKeyUp = (e: KeyboardEvent): void => {
+      if (e.key === "f") setFlag(false);
+    };
+    document.addEventListener("keypress", handleKeyPress);
+    document.addEventListener("keyup", handleKeyUp);
+    return () => {
+      document.removeEventListener("keypress", handleKeyPress);
+      document.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   return (
     <VH>
@@ -127,16 +142,16 @@ export function App() {
         />
         <Flex paddingY="4" justifyContent="space-evenly" alignItems="center">
           <FormControl width="auto" display="inline-flex" alignItems="center">
-            <FormLabel mb="0" mr="2">
+            <FormLabel mb="0" mr="2" ml="0">
               Dig
             </FormLabel>
             <Switch
               name="use-flag"
-              checked={flag}
+              isChecked={flag}
               onChange={(e) => setFlag(e.target.checked)}
             />
-            <FormLabel mb="0" ml="2">
-              Flag
+            <FormLabel mb="0" ml="2" mr="0">
+              Flag <Kbd>F</Kbd>
             </FormLabel>
           </FormControl>
 
