@@ -40,9 +40,15 @@ export function App() {
     "custom",
     levels.get(customLevel)!
   );
-  const [game, startGame] = useGame(update, levels.get(level)!);
+  const getLevel = React.useCallback(
+    (level: Level) =>
+      level === customLevel ? customLevelSettings : levels.get(level)!,
+    [customLevelSettings]
+  );
+
+  const [game, startGame] = useGame(update, getLevel(level));
   useUpdateEffect(() => {
-    if (game.state === "idle") startGame(levels.get(level)!);
+    if (game.state === "idle") startGame(getLevel(level));
   }, [level]);
   useGameTimerControl(game, timer);
 
@@ -96,17 +102,7 @@ export function App() {
               statistics={statistics}
             />
 
-            <Button
-              onClick={() =>
-                startGame(
-                  level === customLevel
-                    ? customLevelSettings
-                    : levels.get(level)!
-                )
-              }
-            >
-              New Game
-            </Button>
+            <Button onClick={() => startGame(getLevel(level))}>New Game</Button>
           </Flex>
         </Container>
 
