@@ -20,6 +20,7 @@ import { useTimer } from "../hooks/useTimer";
 import { useToggleAutoPlay } from "../hooks/useToggleAutoPlay";
 import { useUpdate } from "../hooks/useUpdate";
 import { customLevel, Level, levels } from "../models/Level";
+import { Solution } from "../models/solver";
 import { Cells } from "./Cells";
 import { LevelSelect } from "./LevelSelect";
 import { Solutions } from "./Solutions";
@@ -28,7 +29,7 @@ import { fullHeight, VH } from "./VH";
 
 const searchParams = new URL(location.href).searchParams;
 const enableTimeTravel = searchParams.get("time-travel") !== null;
-const showSolutions = searchParams.get("solutions") !== null;
+const showSolutionsTable = searchParams.get("solutions") !== null;
 const showAutoPlay = searchParams.get("autoplay") !== null;
 
 export function App() {
@@ -45,21 +46,37 @@ export function App() {
   }, [level]);
   useGameTimerControl(game, timer);
 
-  const solutions = useSolutions(game);
-  const [autoPlay, setAutoPlay, applySolutions] = useAutoPlay(game, solutions);
-  const incAutoPlayCount = useToggleAutoPlay(game, autoPlay, setAutoPlay);
   const [showHint, setShowHint] = React.useState(false);
-
+  const [autoPlay, setAutoPlay] = React.useState(false);
+  const shouldShowSolutions = showHint || autoPlay;
+  const shouldGetSolutions = showSolutionsTable || shouldShowSolutions;
+  const solutions = useSolutions(game, shouldGetSolutions);
   const visibleSolutions = React.useMemo(
-    () => (autoPlay || showHint ? solutions : []),
-    [autoPlay, showHint, solutions]
+    () => (shouldShowSolutions ? solutions : []),
+    [shouldShowSolutions, solutions]
   );
+
+  const applySolutions = React.useCallback(
+    (solutions: Solution[]) => {
+      if (solutions.length) {
+        game.mutate(() =>
+          solutions.forEach(([position, action]) =>
+            game.onAction(position, action)
+          )
+        );
+      }
+    },
+    [game]
+  );
+  useAutoPlay(autoPlay, applySolutions, solutions);
+  const incAutoPlayCount = useToggleAutoPlay(game, autoPlay, setAutoPlay);
 
   const statistics = useStatistics(game, level, timer.value, autoPlay);
 
   const [history, goBack] = useHistory(game.grid);
 
   const [flag, setFlag] = React.useState(false);
+
   return (
     <VH>
       <div className="viewport" style={{ height: fullHeight }}>
@@ -150,7 +167,7 @@ export function App() {
             </Checkbox>
           </Flex>
         </Flex>
-        {showSolutions && (
+        {showSolutionsTable && (
           <Solutions solutions={solutions} apply={applySolutions} />
         )}
       </div>

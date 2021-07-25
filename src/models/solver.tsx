@@ -10,13 +10,13 @@ export type Solution = Change;
 export function solve(
   state: State,
   previousState: State | null,
-  previousSolutions: Change[]
-): Change[] {
+  previousSolutions: Solution[]
+): Solution[] {
   return quickSolve(state);
 }
 
-function quickSolve(state: State): Change[] {
-  const solutions: Change[] = [];
+function quickSolve(state: State): Solution[] {
+  const solutions: Solution[] = [];
   // find new solutions around changes
   state.scan((position, cell) => {
     if (cell.state === "initial") {

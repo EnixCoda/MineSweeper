@@ -2,17 +2,19 @@ import * as React from "react";
 import { Cell } from "../models/Cell";
 import { Game } from "../models/Game";
 import { Grid } from "../models/Grid";
-import { Change, solve } from "../models/solver";
+import { Solution, solve } from "../models/solver";
 
-export function useSolutions(game: Game) {
+export function useSolutions(game: Game, active: boolean) {
   const [lastState, setLastState] = React.useState<Grid<Cell>>(game.grid);
-  const [solutions, setSolutions] = React.useState<Change[]>([]);
+  const [solutions, setSolutions] = React.useState<Solution[]>([]);
   React.useEffect(() => {
     setLastState(game.grid);
     setSolutions(
-      game.state === "playing" ? solve(game.grid, lastState, solutions) : []
+      active && game.state === "playing"
+        ? solve(game.grid, lastState, solutions)
+        : []
     );
-  }, [game, game.grid, game.state]);
+  }, [game, game.grid, game.state, active]);
 
   return solutions;
 }
