@@ -1,11 +1,7 @@
 import * as React from "react";
 import { pointerEventButtons } from "../constants";
 import { Actions, BasicActions, Game } from "../models/Game";
-import {
-  matchPositions,
-  Position,
-  rangeDistanceBetween
-} from "../models/Position";
+import { matchPositions, Position } from "../models/Position";
 import { Solution } from "../models/solver";
 import { CellContent } from "./CellContent";
 
@@ -21,6 +17,13 @@ export const Cells = React.memo(function Cells({
   const ref = React.useRef({ left: false, right: false });
   const [pointer, updatePointer] = React.useState<Position>([-1, -1]);
   const [action, setAction] = React.useState<Actions | null>(null);
+  const actionAffectedPositions = React.useMemo(
+    () =>
+      action === "dig-surroundings"
+        ? game.grid.getSurroundings(pointer).map(([position]) => position)
+        : [pointer],
+    [action, pointer, game.grid]
+  );
   const updateAction = React.useCallback(() => {
     const { left, right } = ref.current;
     const action =
@@ -48,7 +51,7 @@ export const Cells = React.memo(function Cells({
       fireAction(position);
       ref.current.left = false;
       ref.current.right = false;
-      updateAction()
+      updateAction();
     },
     [fireAction]
   );
@@ -90,11 +93,14 @@ export const Cells = React.memo(function Cells({
         {game.grid.map((position, cell) => (
           <div
             key={i++}
-            className={`cell state-${cell.state} pointer-${resolveCellClass(
-              action,
-              position,
-              pointer
-            )} solution-${
+            className={`cell state-${cell.state} pointer-${
+              action &&
+              actionAffectedPositions.some(($position) =>
+                matchPositions(position, $position)
+              )
+                ? action
+                : ""
+            } solution-${
               solutions.find(([$position]) =>
                 matchPositions(position, $position)
               )?.[1] || ""
@@ -112,25 +118,3 @@ export const Cells = React.memo(function Cells({
     </div>
   );
 });
-
-function resolveCellClass(
-  action: Actions | null,
-  cellPosition: Position,
-  pointer: Position
-) {
-  switch (action) {
-    case "reveal": {
-      if (matchPositions(cellPosition, pointer)) return "reveal";
-      break;
-    }
-    case "dig-surroundings": {
-      if (rangeDistanceBetween(cellPosition, pointer) <= 1)
-        return "dig-surroundings";
-      break;
-    }
-  }
-
-  if (matchPositions(cellPosition, pointer)) return "hover";
-
-  return "";
-}
