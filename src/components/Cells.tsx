@@ -1,4 +1,4 @@
-import { useCallbackRef, useWhyDidYouUpdate } from "@chakra-ui/react";
+import { useCallbackRef } from "@chakra-ui/react";
 import * as React from "react";
 import { pointerEventButtons } from "../constants";
 import { useKeyboardEvents } from "../hooks/useKeyboardHold";
@@ -11,6 +11,7 @@ import { CellContent } from "./CellContent";
 
 export const Cells = React.memo(function Cells({
   game,
+  grid,
   defaultAction,
   solutions,
 }: {
@@ -34,7 +35,14 @@ export const Cells = React.memo(function Cells({
     React.useCallback(
       (e) => {
         e.preventDefault(); // prevent page scrolling
-        game.onUIAction(pointer, "dig-surroundings");
+        game.mutate(() => {
+          game.onAction(pointer, "dig-surroundings")
+          grid
+            .getSurroundings(pointer)
+            .forEach(([position, cell]) =>
+              game.onAction(position, "dig-surroundings")
+            );
+        });
       },
       [pointer]
     )
@@ -176,16 +184,6 @@ const CellContentWrapper = React.memo(
     onPointerMove(e: React.PointerEvent, position: Position): void;
     onPointerDown(e: React.PointerEvent, position: Position): void;
   }) {
-    false &&
-      useWhyDidYouUpdate(position.join(), {
-        position,
-        cell,
-        pointerActionState,
-        solutions,
-        onPointerUp,
-        onPointerMove,
-        onPointerDown,
-      });
     return (
       <div
         className={`cell state-${
