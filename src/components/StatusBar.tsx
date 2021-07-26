@@ -16,11 +16,15 @@ export function StatusBar({ time, game }: { time: number; game: Game }) {
     >
       <GridItem justifySelf="flex-start">
         <span className="emoji-center">⏱</span>
-        <Text as="span" fontFamily="mono" marginX="1">{formatTime(time, 5)}</Text>
+        <Text as="span" fontFamily="mono" marginX="1">
+          {formatTime(time, 3)}
+        </Text>
       </GridItem>
       <GameState state={game.state} />
       <GridItem justifySelf="flex-end">
-        <Text as="span" fontFamily="mono" marginX="1">{game.mineCount - game.flagCount}</Text>
+        <Text as="span" fontFamily="mono" marginX="1">
+          {game.mineCount - game.flagCount}
+        </Text>
         <span className="emoji-center">💣</span>
       </GridItem>
     </Grid>

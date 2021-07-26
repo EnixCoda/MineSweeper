@@ -37,10 +37,10 @@ export function SimpleStatistics({
             : 0}
           %)
         </Text>
-        {!label && <Text mt="1" fontSize="sm" fontWeight="normal">Best: {record ? formatTime(record) : "?"}</Text>}
+        {!label && <Text mt="1" fontSize="sm" fontWeight="normal">Best: {record ? formatTime(record) : "-"}</Text>}
       </StatNumber>
       {label && (
-        <StatHelpText>Best: {record ? formatTime(record) : "?"}</StatHelpText>
+        <StatHelpText>Best: {record ? formatTime(record) : "-"}</StatHelpText>
       )}
     </Stat>
   );

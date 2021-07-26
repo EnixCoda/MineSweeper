@@ -6,7 +6,7 @@ export function useTimer() {
   React.useEffect(() => {
     if (running) {
       const startTime = Date.now()
-      const interval = setInterval(() => setTime(Date.now() - startTime), 100);
+      const interval = setInterval(() => setTime(Date.now() - startTime), 1000);
       return () => clearInterval(interval)
     }
   }, [running]);

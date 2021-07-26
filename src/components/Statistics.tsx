@@ -50,7 +50,7 @@ export function Statistics({ statistics }: { statistics: Statistics }) {
                     </Td>
                     {statistics[level].records.map((record, i) => (
                       <Td isNumeric key={i}>
-                        {record && formatTime(record, 5)}
+                        {record ? formatTime(record, 3) : "-"}
                       </Td>
                     ))}
                   </Tr>
