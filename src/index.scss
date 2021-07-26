@@ -61,14 +61,14 @@ body {
 
         &:not(.state-revealed) {
           &:hover {
-            filter: brightness(0.8);
+            filter: brightness(1.25);
           }
 
           &.pointer-reveal {
-            filter: brightness(0.5);
+            filter: opacity(0.25);
           }
-          &.pointer-dig-surroundings {
-            filter: brightness(0.625);
+          &:not(.state-flagged).pointer-dig-surroundings {
+            filter: opacity(0.25);
           }
         }
       }
