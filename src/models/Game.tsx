@@ -32,9 +32,6 @@ export class Game {
     const cells: Cell[] = new Array(width * height)
       .fill(null)
       .map((_, i) => new Cell(i < this.mineCount));
-    cells.forEach((cell) => {
-      if (cell.state === "revealed") ++this.revealedCount;
-    });
     this.grid = new Grid(width, height, cells);
   }
 
@@ -46,22 +43,24 @@ export class Game {
     return count;
   }
 
-  private setSurroundingsCount(position: Position) {
-    const cell = this.grid.get(position);
-    if (cell.isMine === false) {
-      cell.surroundingsCount = this.grid
-        .getSurroundings(position)
-        .filter(([$position, $cell]) => $cell.isMine).length;
-    }
-  }
-
   beforeMutation() {
     if (this.immutable) this.grid = this.grid.clone();
   }
 
-  onSafeReveal(position: Position) {
+  guaranteeSafeReveal(position: Position) {
     do this.grid.shuffle();
     while (this.grid.get(position).isMine);
+    this.setRevealedCountAndMines();
+  }
+
+  private setRevealedCountAndMines() {
+    this.revealedCount = 0;
+    this.grid.scan((position, cell) => {
+      if (cell.state === "revealed") ++this.revealedCount;
+      cell.mines = this.grid
+        .getSurroundings(position)
+        .filter(([$position, $cell]) => $cell.isMine).length;
+    });
   }
 
   setGrid(grid: Game["grid"]) {
@@ -115,7 +114,6 @@ export class Game {
             ++this.revealedCount;
             if (this.grid.size === this.revealedCount + this.mineCount)
               this.state = "win";
-            this.setSurroundingsCount(position);
             if (cell.mines === 0)
               this.grid
                 .getSurroundings(position)
@@ -134,7 +132,7 @@ export class Game {
 
   private onBaseAction(position: Position, action: BasicActions) {
     if (this.state === "idle" && action === "reveal")
-      this.onSafeReveal(position);
+      this.guaranteeSafeReveal(position);
 
     if (this.state === "win" || this.state === "lose") return;
 

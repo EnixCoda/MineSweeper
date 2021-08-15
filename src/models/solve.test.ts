@@ -5,10 +5,10 @@ import { Solution, solve } from "./solver";
 const flagged = "!";
 const f = flagged;
 
-const unrevealed = "?";
+const unrevealed = "_";
 const _ = unrevealed;
 
-const digged = "_";
+const digged = "d";
 const d = digged;
 
 type MineCount = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
@@ -154,12 +154,39 @@ const cases: {
       [_, 2, 2, f],
       [_, _, _, 2],
     ],
-
     after: [
       [f, f, 1, 0],
       [_, 3, 2, 1],
       [_, 2, 2, f],
       [d, d, f, 2],
+    ],
+  },
+  {
+    // TODO: support the case
+    before: [
+      [0, 1, _],
+      [1, 3, _],
+      [_, _, _],
+    ],
+    after: [
+      [0, 1, _],
+      [1, 3, _],
+      [_, _, f],
+    ],
+  },
+  {
+    // TODO: support the case
+    before: [
+      [1, _, 1, _],
+      [1, _, 1, _],
+      [1, 1, _, _],
+      [_, _, _, _],
+    ],
+    after: [
+      [1, _, 1, d],
+      [1, _, 1, d],
+      [1, 1, d, d],
+      [_, _, _, _],
     ],
   },
 ];
@@ -169,10 +196,7 @@ function applySolutions(grid: Grid<Cell>, solutions: Solution[]) {
     const cell = grid.get(position);
     switch (action) {
       case "flag":
-        return grid.set(
-          position,
-          new Cell(cell.isMine, cell.mines, "flagged")
-        );
+        return grid.set(position, new Cell(cell.isMine, cell.mines, "flagged"));
       case "reveal":
         return grid.set(
           position,
@@ -186,12 +210,12 @@ cases.forEach((theCase, i) => {
   test(`case ${i}`, () => {
     let grid = parseGridMark(theCase.before);
 
-    let solutions = solve(grid, null, []);
+    let solutions = solve(grid);
     do {
       // console.debug(generateGridMark(grid));
       applySolutions(grid, solutions);
       grid = parseGridMark(generateGridMark(grid));
-      solutions = solve(grid, null, []);
+      solutions = solve(grid);
     } while (solutions.length);
 
     const gridMark = generateGridMark(grid);
