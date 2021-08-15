@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "parcel src/index.html watch"
+    "start": "parcel src/index.html watch",
+    "test": "jest --watch"
   },
   "devDependencies": {
     "@types/jest": "^26.0.24",
