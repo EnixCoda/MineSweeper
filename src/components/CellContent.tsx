@@ -53,8 +53,8 @@ export function CellContent({ cell }: { cell: Cell }) {
           : cell.state === "revealed"
           ? cell.isMine
             ? theme.mine
-            : cell.surroundingsCount > 0
-            ? theme.digits[cell.surroundingsCount]
+            : cell.mines > 0
+            ? theme.digits[cell.mines]
             : theme.revealed
           : ""}
       </span>

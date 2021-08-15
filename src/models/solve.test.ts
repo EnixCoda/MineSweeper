@@ -27,9 +27,9 @@ function generateGridMark(grid: Grid<Cell>): GridMark {
         cell.state === "flagged"
           ? flagged
           : cell.state === "revealed"
-          ? cell.surroundingsCount === -1
+          ? cell.mines === -1
             ? digged
-            : (cell.surroundingsCount as MineCount)
+            : (cell.mines as MineCount)
           : unrevealed
       );
     }
@@ -171,12 +171,12 @@ function applySolutions(grid: Grid<Cell>, solutions: Solution[]) {
       case "flag":
         return grid.set(
           position,
-          new Cell(cell.isMine, cell.surroundingsCount, "flagged")
+          new Cell(cell.isMine, cell.mines, "flagged")
         );
       case "reveal":
         return grid.set(
           position,
-          new Cell(cell.isMine, cell.surroundingsCount, "revealed")
+          new Cell(cell.isMine, cell.mines, "revealed")
         );
     }
   });

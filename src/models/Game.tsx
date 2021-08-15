@@ -89,7 +89,7 @@ export class Game {
       surroundings.forEach(
         ([position, cell]) => (countFlags += cell.state === "flagged" ? 1 : 0)
       );
-      if (countFlags !== cell.surroundingsCount) return;
+      if (countFlags !== cell.mines) return;
 
       surroundings.forEach(([position]) =>
         this.onBaseAction(position, "reveal")
@@ -116,7 +116,7 @@ export class Game {
             if (this.grid.size === this.revealedCount + this.mineCount)
               this.state = "win";
             this.setSurroundingsCount(position);
-            if (cell.surroundingsCount === 0)
+            if (cell.mines === 0)
               this.grid
                 .getSurroundings(position)
                 .forEach(([$position]) =>
