@@ -19,7 +19,7 @@ export class Game {
   public state: "idle" | "playing" | "win" | "lose" = "idle";
   private onUpdate: () => void;
   private revealedCount: number = 0;
-  private immutable = false;
+  private immutable = true;
   constructor(
     width: Game["grid"]["width"],
     height: Game["grid"]["height"],
